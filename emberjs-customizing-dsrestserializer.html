@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+            <title>HATE THAT CODE</title>
+          <meta charset="utf-8" />
+          <!-- Mobile Specific Metas
+          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <!-- Roboto -->
+          <link href='https://fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
+          <link href='https://fonts.googleapis.com/css?family=Roboto+Condensed:300' rel='stylesheet' type='text/css'>
+          <!--Skeleton CSS
+          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+          <link rel="stylesheet" href="/theme/css/pure-min.css">
+          <!--Custom CSS-->
+          <link rel="stylesheet" href="/theme/css/custom.css">
+          <link rel="stylesheet" href="/theme/css/pygment.css">
+          <!-- Favicon
+          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+          <link rel="icon" type="image/png" href="/theme/images/favicon.png" />
+
+
+
+
+    <meta name="tags" contents="emberjs" />
+    <meta name="tags" contents="ember-data" />
+    <meta name="tags" contents="restserializer" />
+
+  </head>
+  <body id="index" class="home">
+            <div class="container pure-g">
+                  <div class="pure-u-1 pure-u-sm-1-12">
+                  <header id="banner" class="blog-title">
+                    <h1><img src="/theme/images/angry_logo_75.png" /><a href="/">HATE THAT CODE</a></h1>
+                      <h2>by josé san gil</h2>
+                  </header><!-- /#banner -->
+                  <nav id="menu">
+                    <ul>
+                    </ul>
+                  </nav><!-- /#menu -->
+<section id="content" class="body article">
+  <header>
+    <abbr class="published" title="2015-03-13T00:00:00+01:00"> Fri 13 March 2015 </abbr>
+    <h2 class="entry-title">
+      <a href="/emberjs-customizing-dsrestserializer.html" rel="bookmark"
+         title="Permalink to EmberJS - Customizing DS.RESTSerializer">EmberJS - Customizing DS.RESTSerializer</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>Two weeks ago I gave a talk at <a href="http://www.meetup.com/Ember-js-Barcelona/">EmberJS BCN Meetup</a> on <a href="">"How to use Ember Data with your REST API"</a>. It was my first talk and fortunately it didn't go bad. I wanted to explain how can you customize Ember Data to work with APIs that don't comply with <a href="http://jsonapi.org/">JSON API spec</a>, which is the default Response format expected by <code>Ember Data</code> since version 2.0.</p>
+<p>However, while I was livecoding a custom <code>DS.RESTSerializer</code> as a demo, I realized that <code>normalizeHash</code> property wasn't listed on the API docs anymore (Ember Data 2.4 docs), it was referenced within the <code>normalize</code> method definition, though.</p>
+<p>Last week I started digging into this topic and realized that it was <strong>deprecated</strong> on <a href="https://github.com/emberjs/data/blob/master/CHANGELOG.md#release-1135-july-8-2015">Ember Data 1.13 release</a>. However, docs were only partially updated and <code>normalizeHash</code> didn't appear anymore as property of <code>DS.RESTSerializer</code>, but the <code>normalize</code> method still had references:</p>
+<p><a href="https://github.com/emberjs/data/blob/v2.4.0/addon/serializers/rest.js#L91">Ember Data 2.4 docs</a>:</p>
+<blockquote>
+<p>If you want to do normalizations specific to some part of the payload, you can specify those under <code>normalizeHash</code>.</p>
+<p>For example, if the <code>IDs</code> under <code>"comments"</code> are provided as <code>_id</code> instead of <code>id</code>, you can specify how to normalize just the comments:</p>
+</blockquote>
+<div class="highlight"><pre>  <span class="c1">//app/serializers/post.js</span>
+  <span class="kr">import</span> <span class="nx">DS</span> <span class="nx">from</span> <span class="s1">&#39;ember-data&#39;</span><span class="p">;</span>
+  <span class="kr">export</span> <span class="k">default</span> <span class="nx">DS</span><span class="p">.</span><span class="nx">RESTSerializer</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+    <span class="nx">normalizeHash</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">comments</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">hash</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">hash</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">hash</span><span class="p">.</span><span class="nx">_id</span><span class="p">;</span>
+        <span class="k">delete</span> <span class="nx">hash</span><span class="p">.</span><span class="nx">_id</span><span class="p">;</span>
+        <span class="k">return</span> <span class="nx">hash</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+</pre></div>
+
+
+<p>Then, I found this <a href="https://github.com/emberjs/data/issues/4186">issue</a> in Ember Data's repo asking to solve this. I opened a <a href="https://github.com/emberjs/data/pull/4228">PR</a> that fixes it (waiting for approval).</p>
+<h2>Munging the payload</h2>
+<p>So, what's the right way to use RESTSerializer?
+If you need to do general manipulations to your API's response, start with the <code>normalizeResponse</code> method. Let's say that our non-JSON API Football Teams API has the following endpoint/response:</p>
+<p><code>GET /api/teams</code></p>
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="nt">&quot;result&quot;</span><span class="p">:</span> <span class="s2">&quot;Ok&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;teams&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Leicester City F.C.&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;league&quot;</span><span class="p">:</span> <span class="s2">&quot;Premier League&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;points&quot;</span><span class="p">:</span> <span class="mi">63</span><span class="p">,</span>
+        <span class="nt">&quot;won&quot;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span>
+        <span class="nt">&quot;drawn&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+        <span class="nt">&quot;lost&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+        <span class="nt">&quot;gf&quot;</span><span class="p">:</span> <span class="mi">53</span><span class="p">,</span>
+        <span class="nt">&quot;ga&quot;</span><span class="p">:</span> <span class="mi">31</span><span class="p">,</span>
+        <span class="nt">&quot;founded&quot;</span><span class="p">:</span> <span class="mi">1884</span><span class="p">,</span>
+        <span class="nt">&quot;arena&quot;</span><span class="p">:</span> <span class="s2">&quot;King Power Stadium&quot;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Totteham Hotspur F.C.&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;league&quot;</span><span class="p">:</span> <span class="s2">&quot;Premier League&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;points&quot;</span><span class="p">:</span> <span class="mi">58</span><span class="p">,</span>
+        <span class="nt">&quot;won&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+        <span class="nt">&quot;drawn&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="nt">&quot;lost&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="nt">&quot;gf&quot;</span><span class="p">:</span> <span class="mi">53</span><span class="p">,</span>
+        <span class="nt">&quot;ga&quot;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>
+        <span class="nt">&quot;founded&quot;</span><span class="p">:</span> <span class="mi">1882</span><span class="p">,</span>
+        <span class="nt">&quot;arena&quot;</span><span class="p">:</span> <span class="s2">&quot;White Hart Lane&quot;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Arsenal F.C.&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;league&quot;</span><span class="p">:</span> <span class="s2">&quot;Premier League&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;points&quot;</span><span class="p">:</span> <span class="mi">52</span><span class="p">,</span>
+        <span class="nt">&quot;won&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+        <span class="nt">&quot;drawn&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+        <span class="nt">&quot;lost&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+        <span class="nt">&quot;gf&quot;</span><span class="p">:</span> <span class="mi">46</span><span class="p">,</span>
+        <span class="nt">&quot;ga&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+        <span class="nt">&quot;founded&quot;</span><span class="p">:</span> <span class="mi">1886</span><span class="p">,</span>
+        <span class="nt">&quot;arena&quot;</span><span class="p">:</span> <span class="s2">&quot;Emirates Stadium&quot;</span>
+      <span class="p">},</span>
+      <span class="p">{</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Manchester City F.C.&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;league&quot;</span><span class="p">:</span> <span class="s2">&quot;Premier League&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;points&quot;</span><span class="p">:</span> <span class="mi">51</span><span class="p">,</span>
+        <span class="nt">&quot;won&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+        <span class="nt">&quot;drawn&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="nt">&quot;lost&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="nt">&quot;gf&quot;</span><span class="p">:</span> <span class="mi">52</span><span class="p">,</span>
+        <span class="nt">&quot;ga&quot;</span><span class="p">:</span> <span class="mi">31</span><span class="p">,</span>
+        <span class="nt">&quot;founded&quot;</span><span class="p">:</span> <span class="mi">1880</span><span class="p">,</span>
+        <span class="nt">&quot;arena&quot;</span><span class="p">:</span> <span class="s2">&quot;City of Manchester Stadium&quot;</span>
+      <span class="p">}</span>
+    <span class="p">]</span>
+  <span class="p">},</span>
+  <span class="nt">&quot;links&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;prev&quot;</span><span class="p">:</span> <span class="s2">&quot;http://api.footballteams/resources/teams/?page=1&amp;per_page=4&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;next&quot;</span><span class="p">:</span> <span class="s2">&quot;http://api.footballteams/resources/teams/?page=2&amp;per_page=4&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;first&quot;</span><span class="p">:</span> <span class="s2">&quot;http://api.footballteams/resources/teams/?page=1&amp;per_page=4&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;last&quot;</span><span class="p">:</span> <span class="s2">&quot;http://api.footballteams/resources/teams/?page=5&amp;per_page=4&quot;</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Then, we have defined <code>team</code> model as follows:</p>
+<div class="highlight"><pre><span class="c1">// app/models/team.js</span>
+<span class="kr">import</span> <span class="nx">DS</span> <span class="nx">from</span> <span class="s1">&#39;ember-data&#39;</span><span class="p">;</span>
+
+<span class="kr">const</span> <span class="p">{</span> <span class="nx">attr</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">DS</span><span class="p">;</span>
+
+<span class="kr">export</span> <span class="k">default</span> <span class="nx">DS</span><span class="p">.</span><span class="nx">Model</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+  <span class="nx">name</span><span class="o">:</span> <span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;string&#39;</span><span class="p">),</span>
+  <span class="nx">league</span><span class="o">:</span> <span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;string&#39;</span><span class="p">),</span>
+  <span class="nx">points</span><span class="o">:</span> <span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;number&#39;</span><span class="p">),</span>
+  <span class="nx">won</span><span class="o">:</span> <span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;number&#39;</span><span class="p">),</span>
+  <span class="nx">drawn</span><span class="o">:</span> <span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;number&#39;</span><span class="p">),</span>
+  <span class="nx">lost</span><span class="o">:</span> <span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;number&#39;</span><span class="p">),</span>
+  <span class="nx">goalsAgainst</span><span class="o">:</span> <span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;number&#39;</span><span class="p">),</span>
+  <span class="nx">goalsFor</span><span class="o">:</span> <span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;number&#39;</span><span class="p">),</span>
+  <span class="nx">founded</span><span class="o">:</span> <span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;number&#39;</span><span class="p">),</span>
+  <span class="nx">stadium</span><span class="o">:</span> <span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;string&#39;</span><span class="p">)</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<p>Let's write our custom <code>normalizeResponse</code> method to get rid of some useless attributes:</p>
+<div class="highlight"><pre><span class="c1">// app/serializers/team.js</span>
+<span class="kr">import</span> <span class="nx">DS</span> <span class="nx">from</span> <span class="s1">&#39;ember-data&#39;</span><span class="p">;</span>
+
+<span class="kr">export</span> <span class="k">default</span> <span class="nx">DS</span><span class="p">.</span><span class="nx">RESTSerializer</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+  <span class="nx">primaryKey</span><span class="o">:</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+
+  <span class="nx">normalizeResponse</span><span class="p">(</span><span class="nx">store</span><span class="p">,</span> <span class="nx">model</span><span class="p">,</span> <span class="nx">payload</span><span class="p">,</span> <span class="nx">id</span><span class="p">,</span> <span class="nx">requestType</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// deletes useless &#39;result&#39; attribute</span>
+    <span class="k">delete</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">result</span><span class="p">;</span>
+    <span class="c1">// removes data attribute and keep teams</span>
+    <span class="nx">payload</span><span class="p">.</span><span class="nx">teams</span> <span class="o">=</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">teams</span><span class="p">;</span>
+    <span class="k">delete</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">data</span><span class="p">;</span>
+
+    <span class="c1">// looks like this endpoint requires pagination</span>
+    <span class="nx">payload</span><span class="p">.</span><span class="nx">links</span> <span class="o">=</span> <span class="nx">doSomethingToHandlePagination</span><span class="p">();</span>
+    <span class="k">delete</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">links</span>
+
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">(...</span><span class="nx">arguments</span><span class="p">);</span>
+  <span class="p">}</span>
+
+<span class="p">});</span>
+</pre></div>
+
+
+<p>API Response does not include an id for each <code>team</code>, so we are setting <code>name</code> as an identifier for each record. Nevertheless, using the team's <code>name</code> as <code>id</code> is probably an anti-pattern; you could try to generate an id for each record in the serializer, but that's beyond the scope of this post.</p>
+<h2>Important</h2>
+<p>As we're using <code>normalizeResponse</code>, this normalization will apply to any request related to the <code>team</code> model. If your API structure isn't consistent and varies for each endpoint (<code>GET api/teams/{team_id}</code>, <code>POST api/teams</code>, <code>PUT api/teams/{team_id}</code>, etc), you should try with <code>normalizeFindAllResponse</code>, <code>normalizeCreateRecordResponse</code> or any <code>normalize*</code> method that matches your API request. For example, the code above could have been written using the <code>normalizeFindAllResponse</code> method as follows:</p>
+<div class="highlight"><pre><span class="c1">// app/serializers/team.js</span>
+<span class="kr">import</span> <span class="nx">DS</span> <span class="nx">from</span> <span class="s1">&#39;ember-data&#39;</span><span class="p">;</span>
+
+<span class="kr">export</span> <span class="k">default</span> <span class="nx">DS</span><span class="p">.</span><span class="nx">RESTSerializer</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+  <span class="nx">primaryKey</span><span class="o">:</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+
+  <span class="nx">normalizeResponse</span><span class="p">(</span><span class="nx">store</span><span class="p">,</span> <span class="nx">model</span><span class="p">,</span> <span class="nx">payload</span><span class="p">,</span> <span class="nx">id</span><span class="p">,</span> <span class="nx">requestType</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// deletes useless &#39;result&#39; attribute</span>
+    <span class="k">delete</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">result</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">(...</span><span class="nx">arguments</span><span class="p">);</span>
+  <span class="p">},</span>
+
+  <span class="nx">normalizeFindAllResponse</span><span class="p">(</span><span class="nx">store</span><span class="p">,</span> <span class="nx">model</span><span class="p">,</span> <span class="nx">payload</span><span class="p">,</span> <span class="nx">id</span><span class="p">,</span> <span class="nx">requestType</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// removes data attribute and keep teams</span>
+    <span class="nx">payload</span><span class="p">.</span><span class="nx">teams</span> <span class="o">=</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">teams</span><span class="p">;</span>
+    <span class="k">delete</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">data</span><span class="p">;</span>
+
+    <span class="c1">// looks like this endpoint requires pagination</span>
+    <span class="nx">payload</span><span class="p">.</span><span class="nx">links</span> <span class="o">=</span> <span class="nx">doSomethingToHandlePagination</span><span class="p">();</span>
+    <span class="k">delete</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">links</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">(...</span><span class="nx">arguments</span><span class="p">);</span>
+  <span class="p">},</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<p>Our payload it's almost normalized, but we still need to match <code>ga</code>, <code>gf</code>, <code>arena</code> attributes with the <code>team</code> model attributes <code>goalsAgainst</code>, <code>goalsFor</code> and <code>stadium</code>, respectively. Let's add a custom <code>normalize</code> method to our <code>team</code> serializer:</p>
+<div class="highlight"><pre><span class="c1">// app/serializers/team.js</span>
+<span class="kr">import</span> <span class="nx">DS</span> <span class="nx">from</span> <span class="s1">&#39;ember-data&#39;</span><span class="p">;</span>
+
+<span class="kr">export</span> <span class="k">default</span> <span class="nx">DS</span><span class="p">.</span><span class="nx">RESTSerializer</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+
+  <span class="nx">normalizeResponse</span><span class="p">(</span><span class="nx">store</span><span class="p">,</span> <span class="nx">model</span><span class="p">,</span> <span class="nx">payload</span><span class="p">,</span> <span class="nx">id</span><span class="p">,</span> <span class="nx">requestType</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// ... as defined above</span>
+  <span class="p">},</span>
+
+  <span class="nx">normalize</span><span class="p">(</span><span class="nx">model</span><span class="p">,</span> <span class="nx">hash</span><span class="p">,</span> <span class="nx">prop</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">hash</span><span class="p">.</span><span class="nx">goalsAgainst</span> <span class="o">=</span> <span class="nx">hash</span><span class="p">.</span><span class="nx">ga</span><span class="p">;</span>
+    <span class="k">delete</span> <span class="nx">hash</span><span class="p">.</span><span class="nx">ga</span><span class="p">;</span>
+    <span class="nx">hash</span><span class="p">.</span><span class="nx">goalsFor</span> <span class="o">=</span> <span class="nx">hash</span><span class="p">.</span><span class="nx">gf</span><span class="p">;</span>
+    <span class="k">delete</span> <span class="nx">hash</span><span class="p">.</span><span class="nx">gf</span><span class="p">;</span>
+    <span class="nx">hash</span><span class="p">.</span><span class="nx">stadium</span> <span class="o">=</span> <span class="nx">hash</span><span class="p">.</span><span class="nx">arena</span><span class="p">;</span>
+    <span class="k">delete</span> <span class="nx">hash</span><span class="p">.</span><span class="nx">arena</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_super</span><span class="p">(</span><span class="nx">model</span><span class="p">,</span> <span class="nx">hash</span><span class="p">,</span> <span class="nx">prop</span><span class="p">);</span>
+  <span class="p">},</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<p>The <code>normalize</code> method will be called for each <code>team</code> within the API response. Now, the payload fully matches what's expected by Ember Data and the <code>team</code> model will get populated.  </p>
+<p><em>The methods described above work for Ember Data 1.13 - 2.4</em>.</p>
+<p>The slides are available <a href="https://github.com/jsangilve/ember-bcn-meetup-march-2016/blob/master/ember-meetup.pdf">here</a>.</p>
+  </div><!-- /.entry-content -->
+</section>
+                  <!-- /#contentinfo -->
+                  </div>
+            </div>
+
+            <footer id="contentinfo">
+              <div class="container">
+                <span>José San Gil / <a href="https://twitter.com/jsangilve">@jsangilve</a></a><span class="credit">logo by AVA ROWELL from the Noun Project</span>
+              </div>
+            </footer>
+            <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+              ga('create', 'UA-11146701-2', 'auto');
+              ga('send', 'pageview');
+            </script>
+  </body>
+</html>
