@@ -49,7 +49,8 @@
   <footer class="post-info">
   </footer><!-- /.post-info -->
   <div class="entry-content">
-    <p>Two weeks ago I gave a talk at <a href="http://www.meetup.com/Ember-js-Barcelona/">EmberJS BCN Meetup</a> on <a href="">"How to use Ember Data with your REST API"</a>. It was my first talk and fortunately it didn't go bad. I wanted to explain how can you customize Ember Data to work with APIs that don't comply with <a href="http://jsonapi.org/">JSON API spec</a>, which is the default Response format expected by <code>Ember Data</code> since version 2.0.</p>
+    <p>(Updated 2016-04-03: PR merged)</p>
+<p>Two weeks ago I gave a talk at <a href="http://www.meetup.com/Ember-js-Barcelona/">EmberJS BCN Meetup</a> on <a href="">"How to use Ember Data with your REST API"</a>. It was my first talk and fortunately it didn't go bad. I wanted to explain how can you customize Ember Data to work with APIs that don't comply with <a href="http://jsonapi.org/">JSON API spec</a>, which is the default Response format expected by <code>Ember Data</code> since version 2.0.</p>
 <p>However, while I was livecoding a custom <code>DS.RESTSerializer</code> as a demo, I realized that <code>normalizeHash</code> property wasn't listed on the API docs anymore (Ember Data 2.4 docs), it was referenced within the <code>normalize</code> method definition, though.</p>
 <p>Last week I started digging into this topic and realized that it was <strong>deprecated</strong> on <a href="https://github.com/emberjs/data/blob/master/CHANGELOG.md#release-1135-july-8-2015">Ember Data 1.13 release</a>. However, docs were only partially updated and <code>normalizeHash</code> didn't appear anymore as property of <code>DS.RESTSerializer</code>, but the <code>normalize</code> method still had references:</p>
 <p><a href="https://github.com/emberjs/data/blob/v2.4.0/addon/serializers/rest.js#L91">Ember Data 2.4 docs</a>:</p>
@@ -71,7 +72,7 @@
 </pre></div>
 
 
-<p>Then, I found this <a href="https://github.com/emberjs/data/issues/4186">issue</a> in Ember Data's repo asking to solve this. I opened a <a href="https://github.com/emberjs/data/pull/4228">PR</a> that fixes it (waiting for approval).</p>
+<p>Then, I found an <a href="https://github.com/emberjs/data/issues/4186">issue</a> in Ember Data's repo asking to solve this. I opened a <a href="https://github.com/emberjs/data/pull/4228">PR</a> that fixes it (already merged). Also, a deprecation warning has been added by <a href="https://github.com/emberjs/data/pull/4258">PR 4258</a>.</p>
 <h2>Munging the payload</h2>
 <p>So, what's the right way to use RESTSerializer?
 If you need to do general manipulations to your API's response, start with the <code>normalizeResponse</code> method. Let's say that our non-JSON API Football Teams API has the following endpoint/response:</p>
