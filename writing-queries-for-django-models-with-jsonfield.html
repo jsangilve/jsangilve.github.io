@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+            <title>HATE THAT CODE</title>
+          <meta charset="utf-8" />
+          <!-- Mobile Specific Metas
+          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <!-- Roboto -->
+          <link href='https://fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
+          <link href='https://fonts.googleapis.com/css?family=Roboto+Condensed:300' rel='stylesheet' type='text/css'>
+          <!--Skeleton CSS
+          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+          <link rel="stylesheet" href="/theme/css/pure-min.css">
+          <!--Custom CSS-->
+          <link rel="stylesheet" href="/theme/css/custom.css">
+          <link rel="stylesheet" href="/theme/css/pygment.css">
+          <!-- Favicon
+          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+          <link rel="icon" type="image/png" href="/theme/images/favicon.png" />
+
+
+
+
+    <meta name="tags" contents="django" />
+    <meta name="tags" contents="python" />
+    <meta name="tags" contents="jsonfield" />
+
+  </head>
+  <body id="index" class="home">
+            <div class="container pure-g">
+                  <div class="pure-u-1 pure-u-sm-1-12">
+                  <header id="banner" class="blog-title">
+                    <h1><img src="/theme/images/angry_logo_75.png" /><a href="/">HATE THAT CODE</a></h1>
+                      <h2>by josé san gil</h2>
+                  </header><!-- /#banner -->
+                  <nav id="menu">
+                    <ul>
+                    </ul>
+                  </nav><!-- /#menu -->
+<section id="content" class="body article">
+  <header>
+    <abbr class="published" title="2016-09-06T00:00:00+02:00"> Tue 06 September 2016 </abbr>
+    <h2 class="entry-title">
+      <a href="/writing-queries-for-django-models-with-jsonfield.html" rel="bookmark"
+         title="Permalink to Writing queries for Django models with JSONField">Writing queries for Django models with JSONField</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>I've been writing a lot of python and Django lately and decided to write about the Postgres' <code>jsonb</code> type, Django and JSONField.</p>
+<p>One interesting feature introduced in Django 1.9 is the <code>JSONField</code>. This field adds support for <code>jsonb</code>, a data type introduced in <a href="https://www.postgresql.org/docs/9.4/static/release-9-4.html">Postgres 9.4</a>. In case you haven't read/hear about it before, <code>jsonb</code> allows you to store JSON data (it actually stores a binary representation) in a table column. It was already possible to store JSON objects as text, but the <code>jsonb</code> type enforces data to comply with the JSON format rules and of course, it gives you SQL syntax to make queries over the JSON's attributes.</p>
+<p>Creating queries with JSONField seems to be easy according to the <a href="https://docs.djangoproject.com/en/1.9/ref/contrib/postgres/fields/#jsonfield">Django documentation</a>, but once you move into more complex situations, where queries require relations and aggregate functions, things could easily get frustrating.</p>
+<p>Let's say we have a table named <code>users_stats</code>, that stores daily interactions completed by the users of your application. Each record of the table has three columns: an <code>id</code> column that works as incremental primary key (PK), a date <code>timestamp</code> column named <code>date</code> and a <code>jsonb</code> column named <code>data</code>. A JSON stored in the <code>data</code> column looks like this:</p>
+<div class="highlight"><pre> <span class="p">{</span>
+   <span class="nt">&quot;clicked_links&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+   <span class="nt">&quot;visited_pages&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+   <span class="nt">&quot;viewed_products&quot;</span><span class="p">:</span> <span class="mi">130</span><span class="p">,</span>
+   <span class="nt">&quot;sold_products&quot;</span><span class="p">:</span> <span class="mi">8</span>
+ <span class="p">}</span>
+</pre></div>
+
+
+<p>Let's support you want the daily stats summary in a period of time. The following query will retrieve that summary using Django Queryset:</p>
+<h3>Using Django ORM</h3>
+<div class="highlight"><pre> <span class="n">UserStats</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">date__range</span><span class="p">(</span><span class="n">since</span><span class="p">,</span> <span class="n">until</span><span class="p">))</span>
+     <span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s">&quot;((data-&gt;&gt;&#39;clicked_links&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)),</span>
+               <span class="n">p</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s">&quot;((data-&gt;&gt;&#39;visited_pages&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)),</span>
+               <span class="n">v</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s">&quot;((data-&gt;&gt;&#39;viewed_products&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)),</span>
+               <span class="n">s</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s">&quot;((data-&gt;&gt;&#39;sold_products&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)))</span> \
+     <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">clicked</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s">&#39;l&#39;</span><span class="p">),</span>
+                <span class="n">visited</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s">&#39;p&#39;</span><span class="p">),</span>
+                <span class="n">viewed</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s">&#39;v&#39;</span><span class="p">),</span>
+                <span class="n">sold</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s">&#39;s&#39;</span><span class="p">))</span>
+</pre></div>
+
+
+<p>Unfortunately, the query above feels more like a hack than a solution; it's harder to understand than the produced SQL and you have to use <code>RawSQL</code> expressions to define each of the aggregate functions (annotations).</p>
+<p>The equivalent SQL for this query would be:</p>
+<div class="highlight"><pre> <span class="k">SELECT</span> <span class="nb">date</span><span class="p">,</span> <span class="k">SUM</span><span class="p">((</span><span class="k">data</span><span class="o">-&gt;&gt;</span><span class="s1">&#39;clicked_links&#39;</span><span class="p">)::</span><span class="nb">int</span><span class="p">),</span> <span class="k">SUM</span><span class="p">((</span><span class="k">data</span><span class="o">-&gt;&gt;</span><span class="s1">&#39;visited_pages&#39;</span><span class="p">)::</span><span class="nb">int</span><span class="p">),</span>
+              <span class="k">SUM</span><span class="p">((</span><span class="k">data</span><span class="o">-&gt;&gt;</span><span class="s1">&#39;viewed_products&#39;</span><span class="p">)::</span><span class="nb">int</span><span class="p">),</span> <span class="k">SUM</span><span class="p">((</span><span class="k">data</span><span class="o">-&gt;&gt;</span><span class="s1">&#39;sold_products&#39;</span><span class="p">)::</span><span class="nb">int</span><span class="p">)</span>
+ <span class="k">FROM</span> <span class="n">user_stats</span>
+ <span class="k">WHERE</span> <span class="nb">date</span> <span class="k">BETWEEN</span> <span class="s1">&#39;YYYY-MM-DD&#39;</span> <span class="k">AND</span> <span class="s1">&#39;Y1Y1Y1-M1M1M1-D1D1&#39;</span>
+ <span class="k">GROUP</span> <span class="k">BY</span> <span class="nb">date</span><span class="p">;</span>
+</pre></div>
+
+
+<p>Using the above query with Django is straightforward; we just need a Django connection object to execute the query:</p>
+<div class="highlight"><pre> <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">connection</span>
+
+
+ <span class="n">query</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;SELECT date, SUM((data-&gt;&gt;&#39;clicked_links&#39;)::int), </span>
+<span class="s">                         SUM((data-&gt;&gt;&#39;visited_pages&#39;)::int),</span>
+<span class="s">                         SUM((data-&gt;&gt;&#39;viewed_products&#39;)::int),</span>
+<span class="s">                         SUM((data-&gt;&gt;&#39;sold_products&#39;)::int)</span>
+<span class="s">            FROM user_stats</span>
+<span class="s">            WHERE date BETWEEN &#39;YYYY-MM-DD&#39; AND &#39;Y1Y1Y1-M1M1M1-D1D1&#39;</span>
+<span class="s">            GROUP BY date;&quot;&quot;&quot;</span>
+
+ <span class="n">cursor</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+ <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+ <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+</pre></div>
+
+
+<p>Now, let's move that boilerplate code into a function:</p>
+<h3>Using SQL</h3>
+<div class="highlight"><pre> <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">connection</span>
+
+
+ <span class="k">def</span> <span class="nf">execute_raw_query</span><span class="p">(</span><span class="n">query</span><span class="p">):</span>
+     <span class="sd">&quot;&quot;&quot;Execute a RawQuery in the Database&quot;&quot;&quot;</span>
+     <span class="n">cursor</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+     <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+     <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+
+ <span class="n">query</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;SELECT date, SUM((data-&gt;&gt;&#39;clicked_links&#39;)::int),</span>
+<span class="s">                         SUM((data-&gt;&gt;&#39;visited_pages&#39;)::int),</span>
+<span class="s">                         SUM((data-&gt;&gt;&#39;viewed_products&#39;)::int),</span>
+<span class="s">                         SUM((data-&gt;&gt;&#39;sold_products&#39;)::int)</span>
+<span class="s">            FROM user_stats</span>
+<span class="s">            WHERE date BETWEEN &#39;YYYY-MM-DD&#39; AND &#39;Y1Y1Y1-M1M1M1-D1D1&#39;</span>
+<span class="s">            GROUP BY date;&quot;&quot;&quot;</span>
+
+ <span class="n">rows</span> <span class="o">=</span> <span class="n">execute_raw_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Finally, we should create a custom manager for the <code>user_stats</code> model and add a function that calculates the daily summary properly:</p>
+<div class="highlight"><pre> <span class="c"># myapp/models.py</span>
+ <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+ <span class="kn">from</span> <span class="nn">myapp.utils</span> <span class="kn">import</span> <span class="n">execute_raw_query</span>
+
+ <span class="k">class</span> <span class="nc">UserStatsManager</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Manager</span><span class="p">):</span>
+
+     <span class="k">def</span> <span class="nf">get_daily_user_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">since</span><span class="p">,</span> <span class="n">to</span><span class="p">):</span>
+         <span class="sd">&quot;&quot;&quot;Calculates user stats summary</span>
+
+<span class="sd">         :param since: retrieves stats from this date</span>
+<span class="sd">         :param to: retrieves stats until this date</span>
+<span class="sd">         &quot;&quot;&quot;</span>
+
+         <span class="c"># formatting dates to iso 8601</span>
+         <span class="n">since_str</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span>
+         <span class="n">to_str</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span>
+
+         <span class="n">query</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;SELECT date, SUM((data-&gt;&gt;&#39;clicked_links&#39;)::int),</span>
+<span class="s">                                 SUM((data-&gt;&gt;&#39;visited_pages&#39;)::int),</span>
+<span class="s">                                 SUM((data-&gt;&gt;&#39;viewed_products&#39;)::int),</span>
+<span class="s">                                 SUM((data-&gt;&gt;&#39;sold_products&#39;)::int)</span>
+<span class="s">                    FROM user_stats</span>
+<span class="s">                    WHERE date BETWEEN &#39;{}&#39; AND &#39;{}&#39;</span>
+<span class="s">                    GROUP BY date;&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">since_str</span><span class="p">,</span> <span class="n">to_str</span><span class="p">)</span>
+
+         <span class="n">rows</span> <span class="o">=</span> <span class="n">execute_raw_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+         <span class="k">return</span> <span class="n">rows</span>
+
+
+  <span class="k">class</span> <span class="nc">UserStats</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+      <span class="o">...</span>
+
+      <span class="n">objects</span> <span class="o">=</span> <span class="n">UserStatsManager</span><span class="p">()</span>
+</pre></div>
+
+
+<p>Both queries do not return Django model objects, but a list of dictionaries containing the date and the aggregation parameters.</p>
+<h2>Conclusion</h2>
+<p>This post doesn't intent to declare that raw queries are the best choice while working with <code>JsonField</code>, but show that while support of Postgres' <code>jsonb</code> in Django is new, and there's still a lot of room for improvement, you can write complex SQL queries using SQL (as usual). If you find yourself struggling to create a query with JsonField through Django ORM or event worse, you hesitate about using JsonField, because you'll require harder queries than those examples at the Django docs, stop losing time and write some SQL.</p>
+<h4>References</h4>
+<p>I spent half a hour looking for references on how to create aggregation queries using Django ORM, and found this Stackoverflow <a href="http://stackoverflow.com/questions/34325096/how-to-aggregate-min-max-etc-over-django-jsonfield-data">question</a> that seems to be the more accurate Django ORM's approach.</p>
+  </div><!-- /.entry-content -->
+</section>
+                  <!-- /#contentinfo -->
+                  </div>
+            </div>
+
+            <footer id="contentinfo">
+              <div class="container">
+                <span>José San Gil / <a href="https://twitter.com/jsangilve">@jsangilve</a></a><span class="credit">logo by AVA ROWELL from the Noun Project</span>
+              </div>
+            </footer>
+            <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+              ga('create', 'UA-11146701-2', 'auto');
+              ga('send', 'pageview');
+            </script>
+  </body>
+</html>
