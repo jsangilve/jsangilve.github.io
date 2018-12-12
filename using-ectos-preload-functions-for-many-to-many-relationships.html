@@ -125,7 +125,7 @@
 </pre></div>
 
 
-<p><strong>...and it doesn't work</strong>, because ECTO seems to INNER JOIN the many to many (<code>wallet_pool</code>) relationship twice, fetching the same pools many times. I could use <code>distinct</code> to avoid filter the repeated result, but there is still the unnecessary extra <code>JOIN</code> with <code>wallet_pool</code>.</p>
+<p><strong>...and it doesn't work</strong>, because ECTO seems to INNER JOIN the many to many (<code>wallet_pool</code>) relationship twice, fetching the same pools many times. I could use <code>distinct</code> to filter the repeated results, but there is still the unnecessary extra <code>JOIN</code> with <code>wallet_pool</code>.</p>
 <p>I was able to write one query that did the whole thing as follows:</p>
 <div class="highlight"><pre> <span class="n">wallet_ids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">99</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
  <span class="n">from</span><span class="p">(</span>
