@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+            <title>HATE THAT CODE</title>
+          <meta charset="utf-8" />
+          <!-- Mobile Specific Metas
+          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <!-- Roboto -->
+          <link href='https://fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
+          <link href='https://fonts.googleapis.com/css?family=Roboto+Condensed:300' rel='stylesheet' type='text/css'>
+          <!--Skeleton CSS
+          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+          <link rel="stylesheet" href="/theme/css/pure-min.css">
+          <!--Custom CSS-->
+          <link rel="stylesheet" href="/theme/css/custom.css">
+          <link rel="stylesheet" href="/theme/css/pygment.css">
+          <!-- Favicon
+          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+          <link rel="icon" type="image/png" href="/theme/images/favicon.png" />
+
+
+
+
+    <meta name="tags" contents="elixir" />
+    <meta name="tags" contents="ecto" />
+    <meta name="tags" contents="postgresql" />
+
+  </head>
+  <body id="index" class="home">
+            <div class="container pure-g">
+                  <div class="pure-u-1 pure-u-sm-1-12">
+                  <header id="banner" class="blog-title">
+                    <h1><img src="/theme/images/angry_logo_75.png" /><a href="/">HATE THAT CODE</a></h1>
+                      <h2>by josé san gil</h2>
+                  </header><!-- /#banner -->
+                  <nav id="menu">
+                    <ul>
+                    </ul>
+                  </nav><!-- /#menu -->
+<section id="content" class="body article">
+  <header>
+    <abbr class="published" title="2018-12-10T00:00:00+01:00"> Mon 10 December 2018 </abbr>
+    <h2 class="entry-title">
+      <a href="/using-ectos-preload-functions-for-many-to-many-relationships.html" rel="bookmark"
+         title="Permalink to Using Ecto's preload functions for Many to Many relationships">Using Ecto's preload functions for Many to Many relationships</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>While working on 1Bitcloud's infrastructure (an application to manage crypto mining farms), I had to solve the following problem:</p>
+<p>A <code>wallet</code> (table 1) can be mined on different <code>pools</code>, whereas a <code>pool</code> (table 2) can be assigned to many <code>wallets</code>. Then we have a table called <code>wallet_pool</code> representing a <strong>many</strong> to <strong>many</strong> relationships between both entities. This relationship also includes a column named <code>priority</code>, which defines the order to select the pools while <em>mining</em> a given <code>wallet</code>. <strong>Given one or more wallets, I needed to <code>preload</code> the related pools ordered by <code>priority</code>.</strong></p>
+<p>The Ecto's schemas look like this:</p>
+<div class="highlight"><pre> <span class="c1"># Schema mapping `wallet` table</span>
+ <span class="kd">defmodule</span> <span class="nc">Wallet</span> <span class="k">do</span>
+   <span class="na">@primary_key</span> <span class="p">{</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:id</span><span class="p">,</span> <span class="ss">autogenerate</span><span class="p">:</span> <span class="no">true</span><span class="p">}</span>
+   <span class="na">@timestamps_opts</span> <span class="p">[</span><span class="ss">type</span><span class="p">:</span> <span class="ss">:utc_datetime</span><span class="p">]</span>
+   <span class="n">schema</span> <span class="s2">&quot;wallet&quot;</span> <span class="k">do</span>
+     <span class="n">field</span><span class="p">(</span><span class="ss">:address</span><span class="p">,</span> <span class="ss">:string</span><span class="p">)</span>
+     <span class="n">field</span><span class="p">(</span><span class="ss">:currency</span><span class="p">,</span> <span class="ss">:string</span><span class="p">)</span>
+     <span class="n">...</span>  
+
+     <span class="c1"># many to many relationshio with schema</span>
+     <span class="n">many_to_many</span><span class="p">(</span>
+       <span class="ss">:pools</span><span class="p">,</span>
+       <span class="nc">Pool</span><span class="p">,</span>
+       <span class="ss">join_through</span><span class="p">:</span> <span class="s2">&quot;wallet_pool&quot;</span><span class="p">,</span>
+       <span class="ss">join_keys</span><span class="p">:</span> <span class="p">[</span><span class="ss">wallet_id</span><span class="p">:</span> <span class="ss">:id</span><span class="p">,</span> <span class="ss">pool_id</span><span class="p">:</span> <span class="ss">:id</span><span class="p">]</span>
+     <span class="p">)</span>
+
+   <span class="k">end</span>
+ <span class="k">end</span>
+
+ <span class="c1"># Schema mapping `pool` table</span>
+ <span class="kd">defmodule</span> <span class="nc">Pool</span> <span class="k">do</span>
+
+   <span class="na">@timestamps_opts</span> <span class="p">[</span><span class="ss">type</span><span class="p">:</span> <span class="ss">:utc_datetime_usec</span><span class="p">]</span>
+   <span class="n">schema</span> <span class="s2">&quot;pool&quot;</span> <span class="k">do</span>
+     <span class="n">field</span><span class="p">(</span><span class="ss">:name</span><span class="p">,</span> <span class="ss">:string</span><span class="p">)</span>
+     <span class="n">field</span><span class="p">(</span><span class="ss">:url</span><span class="p">,</span> <span class="ss">:string</span><span class="p">)</span>
+     <span class="n">field</span><span class="p">(</span><span class="ss">:currency</span><span class="p">,</span> <span class="ss">:string</span><span class="p">)</span>
+     <span class="n">...</span>
+   <span class="k">end</span>
+ <span class="k">end</span>
+</pre></div>
+
+
+<p>N.B: I only defined the <code>ManyToMany</code> relationship on <code>Wallet</code>, because that's the side of the relationship we usually query.</p>
+<h2>Preloading the Pools</h2>
+<p>By default is very easy to preload a relationship with Ecto:</p>
+<div class="highlight"><pre> <span class="nc">Wallet</span>
+ <span class="o">|&gt;</span> <span class="nc">Repo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wallet_id</span><span class="p">)</span>
+ <span class="o">|&gt;</span> <span class="nc">Repo</span><span class="o">.</span><span class="n">preload</span><span class="p">(</span><span class="ss">:pools</span><span class="p">)</span>
+
+ <span class="c1"># or using Ecto.Query API</span>
+ <span class="n">from</span><span class="p">(</span><span class="n">w</span> <span class="ow">in</span> <span class="nc">Wallet</span><span class="p">,</span> <span class="ss">where</span><span class="p">:</span> <span class="n">w</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="o">^</span><span class="n">wallet_id</span><span class="p">,</span> <span class="ss">preload</span><span class="p">:</span> <span class="p">[</span><span class="ss">:pools</span><span class="p">])</span>
+ <span class="o">|&gt;</span> <span class="nc">Repo</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</pre></div>
+
+
+<p>The problem with this approach was that fetched pools were not ordered by the <code>priority</code> column from <code>wallet_pools</code> table. Considering this, I gave it a try to a <a href="https://hexdocs.pm/ecto/Ecto.Query.html#preload/3-preload-queries">preload query</a>:</p>
+<div class="highlight"><pre> <span class="c1"># Preload query to fetch pools</span>
+ <span class="n">q</span> <span class="o">=</span> <span class="n">from</span><span class="p">(</span>
+   <span class="n">p</span> <span class="ow">in</span> <span class="nc">Pool</span><span class="p">,</span>
+   <span class="ss">join</span><span class="p">:</span> <span class="n">r</span> <span class="ow">in</span> <span class="s2">&quot;wallet_pool&quot;</span><span class="p">,</span>
+   <span class="ss">on</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">r</span><span class="o">.</span><span class="n">pool_id</span><span class="p">,</span>
+   <span class="ss">order_by</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">priority</span>
+ <span class="p">)</span>
+
+ <span class="c1"># wallets_or_wallets could be a %Wallet{} struct or a list of them</span>
+ <span class="n">wallet_or_wallets</span> <span class="o">=</span> <span class="n">from</span><span class="p">(</span><span class="n">w</span> <span class="ow">in</span> <span class="nc">Wallet</span><span class="p">,</span> <span class="ss">where</span><span class="p">:</span> <span class="n">w</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">99</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
+
+ <span class="n">wallet_or_wallets</span>
+ <span class="o">|&gt;</span> <span class="nc">Repo</span><span class="o">.</span><span class="n">preload</span><span class="p">(</span><span class="ss">pools</span><span class="p">:</span> <span class="n">q</span><span class="p">)</span>
+</pre></div>
+
+
+<p>This resulted in the following SQL query:</p>
+<div class="highlight"><pre> <span class="k">SELECT</span> <span class="n">p0</span><span class="p">.</span><span class="ss">&quot;id&quot;</span><span class="p">,</span> <span class="n">p0</span><span class="p">.</span><span class="ss">&quot;name&quot;</span><span class="p">,</span> <span class="n">p0</span><span class="p">.</span><span class="ss">&quot;url&quot;</span><span class="p">,</span> <span class="n">p0</span><span class="p">.</span><span class="ss">&quot;currency&quot;</span><span class="p">,</span> <span class="n">w2</span><span class="p">.</span><span class="ss">&quot;id&quot;</span> <span class="k">FROM</span> <span class="ss">&quot;pool&quot;</span> <span class="k">AS</span> <span class="n">p0</span> 
+ <span class="k">INNER</span> <span class="k">JOIN</span> <span class="ss">&quot;wallet_pool&quot;</span> <span class="k">AS</span> <span class="n">w1</span> <span class="k">ON</span> <span class="n">p0</span><span class="p">.</span><span class="ss">&quot;id&quot;</span> <span class="o">=</span> <span class="n">w1</span><span class="p">.</span><span class="ss">&quot;pool_id&quot;</span> 
+ <span class="k">INNER</span> <span class="k">JOIN</span> <span class="ss">&quot;wallet&quot;</span> <span class="k">AS</span> <span class="n">w2</span> <span class="k">ON</span> <span class="n">w2</span><span class="p">.</span><span class="ss">&quot;id&quot;</span> <span class="o">=</span> <span class="k">ANY</span><span class="p">(</span><span class="err">$</span><span class="mi">1</span><span class="p">)</span> 
+ <span class="k">INNER</span> <span class="k">JOIN</span> <span class="ss">&quot;wallet_pool&quot;</span> <span class="k">AS</span> <span class="n">w3</span> <span class="k">ON</span> <span class="n">w3</span><span class="p">.</span><span class="ss">&quot;wallet_id&quot;</span> <span class="o">=</span> <span class="n">w2</span><span class="p">.</span><span class="ss">&quot;id&quot;</span> 
+ <span class="k">WHERE</span> <span class="p">(</span><span class="n">w3</span><span class="p">.</span><span class="ss">&quot;pool_id&quot;</span> <span class="o">=</span> <span class="n">p0</span><span class="p">.</span><span class="ss">&quot;id&quot;</span><span class="p">)</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">w2</span><span class="p">.</span><span class="ss">&quot;id&quot;</span><span class="p">,</span> <span class="n">w1</span><span class="p">.</span><span class="ss">&quot;priority&quot;</span> <span class="p">[[</span><span class="mi">99</span><span class="p">,</span> <span class="mi">100</span><span class="p">]]</span>
+</pre></div>
+
+
+<p><strong>...and it doesn't work</strong>, because ECTO seems to INNER JOIN the many to many (<code>wallet_pool</code>) relationship twice, fetching the same pools many times. I could use <code>distinct</code> to avoid filter the repeated result, but there is still the unnecessary extra <code>JOIN</code> with <code>wallet_pool</code>.</p>
+<p>I was able to write one query that did the whole thing as follows:</p>
+<div class="highlight"><pre> <span class="n">wallet_ids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">99</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
+ <span class="n">from</span><span class="p">(</span>
+   <span class="n">w</span> <span class="ow">in</span> <span class="nc">Wallet</span><span class="p">,</span>
+   <span class="ss">join</span><span class="p">:</span> <span class="n">r</span> <span class="ow">in</span> <span class="s2">&quot;wallet_pool&quot;</span><span class="p">,</span> <span class="ss">on</span><span class="p">:</span> <span class="n">w</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">r</span><span class="o">.</span><span class="n">wallet_id</span><span class="p">,</span>
+   <span class="ss">join</span><span class="p">:</span> <span class="n">p</span> <span class="ow">in</span> <span class="nc">Pool</span><span class="p">,</span> <span class="ss">on</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">r</span><span class="o">.</span><span class="n">pool_id</span><span class="p">,</span>
+   <span class="ss">where</span><span class="p">:</span> <span class="n">w</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="o">^</span><span class="n">wallet_ids</span><span class="p">,</span>
+   <span class="ss">preload</span><span class="p">:</span> <span class="p">[</span><span class="ss">pools</span><span class="p">:</span> <span class="n">p</span><span class="p">],</span>
+   <span class="ss">order_by</span><span class="p">:</span> <span class="p">[</span><span class="n">w</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">priority</span><span class="p">]</span>
+ <span class="p">)</span>
+ <span class="o">|&gt;</span> <span class="nc">Repo</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</pre></div>
+
+
+<p>However, this doesn't scale easily. I wanted to wrap the <code>preload</code> query within a function to make it composable i.e., it doesn't matter how do you query the <code>wallet</code> table, as long as you have a <code>%Wallet{}</code> or a list of <code>%Wallet{}</code>, it should work.</p>
+<p>That's when I checked <a href="https://hexdocs.pm/ecto/Ecto.Query.html#preload/3-preload-functions">preload functions</a>. When I started writing these queries, the project was using Ecto <code>2.2.11</code>. While reading about preload functions, I found this <a href="https://github.com/elixir-ecto/ecto/issues/2534">bug</a> solved by <em>Valim</em> for Ecto 3.0. According to the <a href="https://github.com/elixir-ecto/ecto/blob/master/CHANGELOG.md#bug-fixes-4">CHANGELOG</a>, the behaviour for preload functions on <code>many_to_many</code> associations was erratic in Ecto 2.x.x. I migrated to Ecto 3.0.X (which was already in our TODO list) and gave it a try.</p>
+<div class="highlight"><pre> <span class="kd">defmodule</span> <span class="nc">WalletHelper</span> <span class="k">do</span>
+   <span class="na">@moduledoc</span> <span class="sh">&quot;&quot;&quot;</span>
+<span class="sh">   Helpers functions to query Wallet schema.</span>
+<span class="sh">   &quot;&quot;&quot;</span>
+   <span class="kn">import</span> <span class="nc">Ecto.Query</span>
+
+   <span class="na">@doc</span> <span class="sh">&quot;&quot;&quot;</span>
+<span class="sh">   Ecto preload function: lists pools related to the given `wallet_ids`,</span>
+<span class="sh">   ordered by the `priority` defined at `wallet_pool` association.</span>
+<span class="sh">   &quot;&quot;&quot;</span>
+   <span class="kd">def</span> <span class="n">preload_pools</span><span class="p">(</span><span class="n">wallet_ids</span><span class="p">)</span> <span class="k">do</span>
+     <span class="nc">Pool</span>
+     <span class="o">|&gt;</span> <span class="n">join</span><span class="p">(</span><span class="ss">:inner</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="n">r</span> <span class="ow">in</span> <span class="s2">&quot;wallet_pool&quot;</span><span class="p">,</span> 
+       <span class="ss">on</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">wallet_id</span> <span class="ow">in</span> <span class="o">^</span><span class="n">wallet_ids</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">r</span><span class="o">.</span><span class="n">pool_id</span>
+     <span class="p">)</span>
+     <span class="o">|&gt;</span> <span class="n">order_by</span><span class="p">([</span><span class="bp">_</span><span class="p">,</span> <span class="n">r</span><span class="p">],</span> <span class="n">r</span><span class="o">.</span><span class="n">priority</span><span class="p">)</span>
+     <span class="o">|&gt;</span> <span class="n">select</span><span class="p">([</span><span class="n">p</span><span class="p">,</span> <span class="n">r</span><span class="p">],</span> <span class="p">{</span><span class="n">r</span><span class="o">.</span><span class="n">wallet_id</span><span class="p">,</span> <span class="n">p</span><span class="p">})</span>
+     <span class="o">|&gt;</span> <span class="nc">Repo</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+   <span class="k">end</span>
+ <span class="k">end</span>
+
+ <span class="c1"># Calling the preload function</span>
+ <span class="n">iex</span><span class="o">&gt;</span> <span class="nc">WalletHelper</span><span class="o">.</span><span class="n">preload_pools</span><span class="p">([</span><span class="mi">99</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
+ <span class="p">[</span>
+   <span class="p">{</span><span class="mi">99</span><span class="p">,</span>
+      <span class="p">%</span><span class="nc">Pool</span><span class="p">{</span>
+        <span class="ss">id</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
+        <span class="ss">currency</span><span class="p">:</span> <span class="s2">&quot;BTC&quot;</span><span class="p">,</span>
+        <span class="ss">port</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+        <span class="ss">url</span><span class="p">:</span> <span class="s2">&quot;stratum+tcp://stratum.example.com&quot;</span>
+     <span class="p">}</span>
+   <span class="p">},</span>
+   <span class="p">{</span><span class="mi">99</span><span class="p">,</span>
+      <span class="p">%</span><span class="nc">Pool</span><span class="p">{</span>
+        <span class="ss">id</span><span class="p">:</span> <span class="mi">33</span><span class="p">,</span>
+        <span class="ss">currency</span><span class="p">:</span> <span class="s2">&quot;BTC&quot;</span><span class="p">,</span>
+        <span class="ss">port</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+        <span class="ss">url</span><span class="p">:</span> <span class="s2">&quot;stratum+tcp://stratum.example2.com&quot;</span>
+     <span class="p">}</span>
+   <span class="p">},</span>
+   <span class="p">{</span><span class="mi">100</span><span class="p">,</span>
+      <span class="p">%</span><span class="nc">Pool</span><span class="p">{</span>
+        <span class="ss">id</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+        <span class="ss">currency</span><span class="p">:</span> <span class="s2">&quot;BTC&quot;</span><span class="p">,</span>
+        <span class="ss">port</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+        <span class="ss">url</span><span class="p">:</span> <span class="s2">&quot;stratum+tcp://stratum.example3.com&quot;</span>
+     <span class="p">}</span>
+   <span class="p">}</span>
+ <span class="p">]</span>
+</pre></div>
+
+
+<p>N.B: this only works with Ecto 3.0.x.</p>
+<p>As you can see, the preload function returns <code>tuples</code> which first element is the id of the related wallet, while the second one is the <code>pool</code> struct. This what the preload function must return according to the <a href="https://hexdocs.pm/ecto/Ecto.Query.html#preload/3-preload-functions">docs</a>:</p>
+<blockquote>
+<p>For many_to_many - the function receives the IDs of the parent association and it must return a tuple with the parent id as first element and the association map or struct as second.</p>
+</blockquote>
+<p>Finally, using the preload function is quite simple:</p>
+<div class="highlight"><pre> <span class="c1"># How do you query the wallets is totally indepent of the preload function</span>
+ <span class="n">iex</span><span class="o">&gt;</span> <span class="nc">Repo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nc">Wallet</span><span class="p">,</span> <span class="mi">99</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="nc">Repo</span><span class="o">.</span><span class="n">preload</span><span class="p">(</span><span class="ss">pools</span><span class="p">:</span> <span class="o">&amp;</span><span class="nc">WalletHelper</span><span class="o">.</span><span class="n">preload_pools</span><span class="o">/</span><span class="mi">1</span><span class="p">)</span>
+ <span class="p">%</span><span class="nc">Wallet</span><span class="p">{</span>
+    <span class="ss">__meta__</span><span class="p">:</span> <span class="c1">#Ecto.Schema.Metadata&lt;:loaded, &quot;wallet&quot;&gt;,</span>
+    <span class="ss">id</span><span class="p">:</span> <span class="mi">99</span><span class="p">,</span>
+    <span class="ss">currency</span><span class="p">:</span> <span class="s2">&quot;BTC&quot;</span><span class="p">,</span>
+    <span class="ss">address</span><span class="p">:</span> <span class="s2">&quot;some_bitcoin_address&quot;</span><span class="p">,</span>
+    <span class="ss">pools</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">%</span><span class="nc">Pool</span><span class="p">{</span>
+        <span class="ss">id</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
+        <span class="ss">currency</span><span class="p">:</span> <span class="s2">&quot;BTC&quot;</span><span class="p">,</span>
+        <span class="ss">port</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+        <span class="ss">url</span><span class="p">:</span> <span class="s2">&quot;stratum+tcp://stratum.example.com&quot;</span>
+      <span class="p">},</span>
+      <span class="p">%</span><span class="nc">Pool</span><span class="p">{</span>
+       <span class="ss">id</span><span class="p">:</span> <span class="mi">33</span><span class="p">,</span>
+       <span class="ss">currency</span><span class="p">:</span> <span class="s2">&quot;BTC&quot;</span><span class="p">,</span>
+       <span class="ss">port</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+       <span class="ss">url</span><span class="p">:</span> <span class="s2">&quot;stratum+tcp://stratum.example2.com&quot;</span>
+      <span class="p">}</span>
+    <span class="p">]</span>
+  <span class="p">}</span>
+</pre></div>
+
+
+<p>The query above can also be written using <code>Ecto.Query</code>. I prefer the syntax above, though.</p>
+<div class="highlight"><pre> <span class="n">iex</span><span class="o">&gt;</span> <span class="kn">import</span> <span class="nc">Ecto.Query</span>
+ <span class="n">iex</span><span class="o">&gt;</span> <span class="nc">Wallet</span> <span class="o">|&gt;</span> <span class="n">where</span><span class="p">([</span><span class="n">w</span><span class="p">],</span> <span class="n">w</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">99</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="n">preload</span><span class="p">([</span><span class="ss">pools</span><span class="p">:</span> <span class="o">^&amp;</span><span class="nc">WalletHelper</span><span class="o">.</span><span class="n">preload_pools</span><span class="o">/</span><span class="mi">1</span><span class="p">])</span> <span class="o">|&gt;</span> <span class="nc">Repo</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+ <span class="n">...</span> <span class="n">same</span> <span class="n">result</span>
+</pre></div>
+
+
+<h2>Bonus</h2>
+<p>I wanted to include the pool's priority on the results, so I did a slight modification on Pool's schema adding a virtual field called <code>priority</code>:</p>
+<div class="highlight"><pre> <span class="c1"># Schema mapping `pool` table</span>
+ <span class="kd">defmodule</span> <span class="nc">Pool</span> <span class="k">do</span>
+   <span class="na">@timestamps_opts</span> <span class="p">[</span><span class="ss">type</span><span class="p">:</span> <span class="ss">:utc_datetime_usec</span><span class="p">]</span>
+   <span class="n">schema</span> <span class="s2">&quot;pool&quot;</span> <span class="k">do</span>
+     <span class="n">field</span><span class="p">(</span><span class="ss">:name</span><span class="p">,</span> <span class="ss">:string</span><span class="p">)</span>
+     <span class="n">field</span><span class="p">(</span><span class="ss">:url</span><span class="p">,</span> <span class="ss">:string</span><span class="p">)</span>
+     <span class="n">field</span><span class="p">(</span><span class="ss">:currency</span><span class="p">,</span> <span class="ss">:string</span><span class="p">)</span>
+     <span class="n">...</span>
+     <span class="c1"># new virtual field</span>
+     <span class="n">field</span><span class="p">(</span><span class="ss">:priority</span><span class="p">,</span> <span class="ss">:string</span><span class="p">,</span> <span class="ss">virtual</span><span class="p">:</span> <span class="no">true</span><span class="p">)</span>
+   <span class="k">end</span>
+ <span class="k">end</span>
+</pre></div>
+
+
+<p>...then added the priority value within <code>preload_pools</code> function using <a href="https://hexdocs.pm/ecto/Ecto.Query.API.html#merge/2"><code>Ecto.Query.merge/2</code></a>:</p>
+<div class="highlight"><pre> <span class="kd">defmodule</span> <span class="nc">WalletHelper</span> <span class="k">do</span>
+   <span class="n">...</span>
+
+   <span class="kd">def</span> <span class="n">preload_pools</span><span class="p">(</span><span class="n">wallet_ids</span><span class="p">)</span> <span class="k">do</span>
+     <span class="nc">Pool</span>
+     <span class="o">|&gt;</span> <span class="n">join</span><span class="p">(</span><span class="ss">:inner</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="n">r</span> <span class="ow">in</span> <span class="s2">&quot;wallet_pool&quot;</span><span class="p">,</span> 
+       <span class="ss">on</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">wallet_id</span> <span class="ow">in</span> <span class="o">^</span><span class="n">wallet_ids</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">r</span><span class="o">.</span><span class="n">pool_id</span>
+     <span class="p">)</span>
+     <span class="o">|&gt;</span> <span class="n">order_by</span><span class="p">([</span><span class="bp">_</span><span class="p">,</span> <span class="n">r</span><span class="p">],</span> <span class="n">r</span><span class="o">.</span><span class="n">priority</span><span class="p">)</span>
+     <span class="o">|&gt;</span> <span class="n">select</span><span class="p">([</span><span class="n">p</span><span class="p">,</span> <span class="n">r</span><span class="p">],</span> <span class="p">{</span><span class="n">r</span><span class="o">.</span><span class="n">wallet_id</span><span class="p">,</span> <span class="n">merge</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">%{</span><span class="ss">priority</span><span class="p">:</span> <span class="n">priority</span><span class="p">})})</span>
+     <span class="o">|&gt;</span> <span class="nc">Repo</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+   <span class="k">end</span>
+ <span class="k">end</span>
+
+ <span class="n">iex</span><span class="o">&gt;</span> <span class="nc">WalletHelper</span><span class="o">.</span><span class="n">preload_pools</span><span class="p">([</span><span class="mi">99</span><span class="p">])</span>
+ <span class="p">[</span>
+   <span class="p">{</span><span class="mi">99</span><span class="p">,</span>
+      <span class="p">%</span><span class="nc">Pool</span><span class="p">{</span>
+        <span class="ss">id</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
+        <span class="ss">currency</span><span class="p">:</span> <span class="s2">&quot;BTC&quot;</span><span class="p">,</span>
+        <span class="ss">port</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+        <span class="ss">url</span><span class="p">:</span> <span class="s2">&quot;stratum+tcp://stratum.example.com&quot;</span><span class="p">,</span>
+        <span class="ss">priority</span><span class="p">:</span> <span class="s2">&quot;first&quot;</span>
+     <span class="p">}</span>
+   <span class="p">},</span>
+   <span class="p">{</span><span class="mi">99</span><span class="p">,</span>
+      <span class="p">%</span><span class="nc">Pool</span><span class="p">{</span>
+        <span class="ss">id</span><span class="p">:</span> <span class="mi">33</span><span class="p">,</span>
+        <span class="ss">currency</span><span class="p">:</span> <span class="s2">&quot;BTC&quot;</span><span class="p">,</span>
+        <span class="ss">port</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+        <span class="ss">url</span><span class="p">:</span> <span class="s2">&quot;stratum+tcp://stratum.example2.com&quot;</span><span class="p">,</span>
+        <span class="ss">priority</span><span class="p">:</span> <span class="s2">&quot;second&quot;</span>
+     <span class="p">}</span>
+   <span class="p">},</span>
+ <span class="p">]</span>
+</pre></div>
+
+
+<p>That's it, now we are able to compose <code>wallet</code> queries while preloading pools, and the <code>priority</code> of the pool for each `wallet.</p>
+  </div><!-- /.entry-content -->
+</section>
+                  <!-- /#contentinfo -->
+                  </div>
+            </div>
+
+            <footer id="contentinfo">
+              <div class="container">
+                <span>José San Gil / <a href="https://twitter.com/jsangilve">@jsangilve</a></a><span class="credit">logo by AVA ROWELL from the Noun Project</span>
+              </div>
+            </footer>
+            <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+              ga('create', 'UA-11146701-2', 'auto');
+              ga('send', 'pageview');
+            </script>
+  </body>
+</html>
