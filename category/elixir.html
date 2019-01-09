@@ -36,6 +36,24 @@
 <ul id="post-list" class="posts">
         <li><article class="hentry">
            <header> 
+              <abbr class="published" title="2019-01-08T00:00:00+01:00"> Tue 08 January 2019 </abbr>
+              <h2 class="entry-title"><a href="/a-macro-to-query-over-multiple-fields-of-a-jsonb-column.html" rel="bookmark" title="Permalink to A macro to query over multiple fields of a JSONB column">A macro to query over multiple fields of a JSONB column</a></h2>
+            </header>
+                <div class="entry-content"> <p>When working with an <code>Ecto.Schema</code> that contains a JSONB column, you normally create a <a href="https://hexdocs.pm/ecto/Ecto.Query.API.html#fragment/1">fragment</a> to query the attributes of a column.</p>
+<p>For instance, let's assume we have the following schema:</p>
+<div class="highlight"><pre> <span class="kd">defmodule</span> <span class="nc">Vehicle</span> <span class="k">do</span>
+   <span class="na">@primary_key</span> <span class="p">{</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:id</span><span class="p">,</span> <span class="ss">autogenerate</span><span class="p">:</span> <span class="no">true</span><span class="p">}</span>
+   <span class="n">schema</span> <span class="s2">&quot;vehicle&quot;</span> <span class="k">do</span>
+     <span class="n">field</span> <span class="ss">:brand</span><span class="p">,</span> <span class="ss">:string</span>
+     <span class="n">field</span> <span class="ss">:model</span><span class="p">,</span> <span class="ss">:string ...</span></pre></div> </div><!-- /.entry-content -->
+                <div class="read-more"><a href="a-macro-to-query-over-multiple-fields-of-a-jsonb-column.html">read more...</a></div>
+                <span class="tag"><a href="/tag/elixir.html">elixir</a></span>
+                <span class="tag"><a href="/tag/ecto.html">ecto</a></span>
+                <span class="tag"><a href="/tag/jsonb.html">jsonb</a></span>
+                <span class="tag"><a href="/tag/postgresql.html">postgresql</a></span>
+        </article></li>
+        <li><article class="hentry">
+           <header> 
               <abbr class="published" title="2018-12-10T00:00:00+01:00"> Mon 10 December 2018 </abbr>
               <h2 class="entry-title"><a href="/using-ectos-preload-functions-for-many-to-many-relationships.html" rel="bookmark" title="Permalink to Using Ecto's preload functions for Many to Many relationships">Using Ecto's preload functions for Many to Many relationships</a></h2>
             </header>
