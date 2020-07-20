@@ -52,7 +52,7 @@
   <div class="entry-content">
     <p>When working with an <code>Ecto.Schema</code> that contains a JSONB column, you normally create a <a href="https://hexdocs.pm/ecto/Ecto.Query.API.html#fragment/1" target="&quot;_blank">fragment</a> to query the attributes of a column.</p>
 <p>For instance, let's assume we have the following schema:</p>
-<div class="highlight"><pre> <span class="kd">defmodule</span> <span class="nc">Vehicle</span> <span class="k">do</span>
+<div class="highlight"><pre><span></span> <span class="kd">defmodule</span> <span class="nc">Vehicle</span> <span class="k">do</span>
    <span class="na">@primary_key</span> <span class="p">{</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:id</span><span class="p">,</span> <span class="ss">autogenerate</span><span class="p">:</span> <span class="no">true</span><span class="p">}</span>
    <span class="n">schema</span> <span class="s2">&quot;vehicle&quot;</span> <span class="k">do</span>
      <span class="n">field</span> <span class="ss">:brand</span><span class="p">,</span> <span class="ss">:string</span>
@@ -66,7 +66,7 @@
 <p>The field <code>specs</code> is a Postgres' <code>jsonb</code> column storing vehicle's information as engine type, horsepower, dimensions, passenger capacity, etc. Let's imagine we decided to use <code>jsonb</code> because specs between vehicles can be significantly different i.e. some <code>jsonb</code> attributes of a vehicle might not exist for another model.</p>
 <h2>Queries</h2>
 <p>If we want to get all the vehicles which brand is Mercedes-Benz and passenger capacity is 5, we would write something like this:</p>
-<div class="highlight"><pre> <span class="c1"># using jsonb containment operator</span>
+<div class="highlight"><pre><span></span> <span class="c1"># using jsonb containment operator</span>
  <span class="kd">def</span> <span class="n">query_by_brand_capacity</span><span class="p">(</span><span class="n">brand</span><span class="p">,</span> <span class="n">capacity</span><span class="p">)</span> <span class="k">do</span>
    <span class="nc">Vehicle</span>
    <span class="o">|&gt;</span> <span class="n">where</span><span class="p">([</span><span class="n">v</span><span class="p">],</span> <span class="n">v</span><span class="o">.</span><span class="n">brand</span> <span class="o">==</span> <span class="o">^</span><span class="n">brand</span><span class="p">)</span>
@@ -101,7 +101,7 @@
 <h2>A Macro</h2>
 <p>Let's say we want to have all the vehicles which <code>passenger_capacity</code> is <code>x</code>, <code>engine_type</code> is <code>e_type</code>, and <code>drive_type</code> is <code>d_type</code>.</p>
 <p>Following the previous approach, we would define the following query:</p>
-<div class="highlight"><pre> <span class="kd">def</span> <span class="n">query_by_engine_capacity_drive</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">drive</span><span class="p">)</span> <span class="k">do</span>
+<div class="highlight"><pre><span></span> <span class="kd">def</span> <span class="n">query_by_engine_capacity_drive</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">drive</span><span class="p">)</span> <span class="k">do</span>
    <span class="nc">Vehicle</span>
    <span class="o">|&gt;</span> <span class="n">where</span><span class="p">([</span><span class="n">_v</span><span class="p">],</span> <span class="n">fragment</span><span class="p">(</span>
      <span class="s2">&quot;specs @&gt; ? AND specs @&gt; ? AND specs @&gt; ?&quot;</span><span class="p">,</span>
@@ -114,7 +114,7 @@
 
 
 <p>The ideal API would provide a function where multiple <code>jsonb</code> fields can be query and combined at the same time using <code>AND</code> / <code>OR</code> operators:</p>
-<div class="highlight"><pre> <span class="n">iex</span><span class="o">&gt;</span> <span class="n">query_specs</span><span class="p">(</span>
+<div class="highlight"><pre><span></span> <span class="n">iex</span><span class="o">&gt;</span> <span class="n">query_specs</span><span class="p">(</span>
    <span class="n">query</span><span class="p">,</span> 
    <span class="ss">engine_type</span><span class="p">:</span> <span class="s2">&quot;Electric&quot;</span><span class="p">,</span> <span class="ss">passenger_capacity</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="ss">drive_type</span><span class="p">:</span> <span class="s2">&quot;Front Wheel&quot;</span>
  <span class="p">)</span> <span class="o">|&gt;</span> <span class="nc">Repo</span><span class="o">.</span><span class="n">all</span>
@@ -136,7 +136,7 @@
 
 
 <p>Let's try to define a macro that does that:</p>
-<div class="highlight"><pre> <span class="kd">defmacro</span> <span class="n">json_multi_expressions_v0</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span> <span class="k">do</span>
+<div class="highlight"><pre><span></span> <span class="kd">defmacro</span> <span class="n">json_multi_expressions_v0</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span> <span class="k">do</span>
    <span class="c1"># conjuctive operator to be used between fragments</span>
    <span class="n">conjuntion</span> <span class="o">=</span> <span class="nc">Keyword</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">opts</span><span class="p">,</span> <span class="ss">:conjuntion</span><span class="p">,</span> <span class="ss">:and</span><span class="p">)</span>
 
@@ -169,7 +169,7 @@
 
 <p>The <code>macro</code> above compares each JSONB field in <code>params</code>, and combines it (via reduce) on dynamic expressions joined by <code>:or</code> or <code>:and</code> (depending on the <code>conjuction</code> option).</p>
 <p>Using the macro above we're now able to write <code>query_specs/3</code>:</p>
-<div class="highlight"><pre> <span class="na">@spec</span> <span class="n">query_specs</span><span class="p">(</span><span class="nc">Ecto.Query</span><span class="o">.</span><span class="n">t</span><span class="p">(),</span> <span class="nc">Keyword</span><span class="o">.</span><span class="n">t</span><span class="p">())</span> <span class="o">::</span> <span class="p">[</span><span class="n">vehicle</span><span class="p">]</span>
+<div class="highlight"><pre><span></span> <span class="na">@spec</span> <span class="n">query_specs</span><span class="p">(</span><span class="nc">Ecto.Query</span><span class="o">.</span><span class="n">t</span><span class="p">(),</span> <span class="nc">Keyword</span><span class="o">.</span><span class="n">t</span><span class="p">())</span> <span class="o">::</span> <span class="p">[</span><span class="n">vehicle</span><span class="p">]</span>
  <span class="kd">def</span> <span class="n">query_specs</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">conjunction</span> <span class="o">//</span> <span class="ss">:and</span><span class="p">)</span> <span class="k">do</span>
     <span class="n">query</span>
     <span class="o">|&gt;</span> <span class="n">where</span><span class="p">(</span>
@@ -183,7 +183,7 @@
 <p>This works reasonably well, and allows to query as many Vehicle <code>specs</code> as necessary without having to write a new query. However, what if some <code>jsonb</code> fields require a more complex comparison?</p>
 <p>Imagine we need to query for vehicles which <code>passenger_capacity</code> is <strong>greater or equal than</strong> <code>x</code>, <code>engine_type</code> is <code>e_type</code>, and <code>drive_type</code> is <code>d_type</code>. The macro above won't be enough to do this. Let's get back to the macro's implementation and introduce a new option.</p>
 <p>First, let's make the macro more readable:</p>
-<div class="highlight"><pre> <span class="kd">defmacro</span> <span class="n">json_multi_expressions_v1</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span> <span class="k">do</span>
+<div class="highlight"><pre><span></span> <span class="kd">defmacro</span> <span class="n">json_multi_expressions_v1</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span> <span class="k">do</span>
    <span class="c1"># conjuctive operator to be used between fragments</span>
    <span class="n">conjunction</span> <span class="o">=</span> <span class="nc">Keyword</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">opts</span><span class="p">,</span> <span class="ss">:conjunction</span><span class="p">,</span> <span class="ss">:and</span><span class="p">)</span>
 
@@ -224,7 +224,7 @@
 
 <p>Now each fragment is built and combined by the <code>build_expressions/3</code> function, and we just need to call this function using the fully qualified name. </p>
 <p>Second, let's expand <code>build_expressions/3</code> to allow a custom query expression (a custom fragment) for each <code>jsonb</code> column:</p>
-<div class="highlight"><pre> <span class="na">@doc</span> <span class="no">false</span>
+<div class="highlight"><pre><span></span> <span class="na">@doc</span> <span class="no">false</span>
  <span class="na">@spec</span> <span class="n">build_expressions</span><span class="p">(</span><span class="n">map</span><span class="p">()</span> <span class="o">|</span> <span class="nc">Keyword</span><span class="o">.</span><span class="n">t</span><span class="p">(),</span> <span class="n">atom</span><span class="p">(),</span> <span class="n">atom</span><span class="p">(),</span> <span class="n">fun</span><span class="p">())</span> 
   <span class="o">::</span> <span class="nc">Macro</span><span class="o">.</span><span class="n">t</span><span class="p">()</span>
  <span class="kd">def</span> <span class="n">build_expressions</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">conjunction</span><span class="p">,</span> <span class="n">dynamic_fun</span> <span class="p">\\</span> <span class="no">nil</span><span class="p">)</span>
@@ -268,7 +268,7 @@
 
 <p>We added a new parameter to <code>build_expressions/4</code> called <code>dynamic_fun</code>. This is an <strong>optional</strong> function that must return an Ecto's <code>dynamic</code> expression. When <code>dynamic_fun</code> option is <code>nil</code> or returns <code>nil</code> for a given <code>jsonb</code> field, a default expression using the <code>jsonb</code> containment operator would be placed instead.</p>
 <p>Let's get back to the query. We wanted vehicles which <code>passenger_capacity</code> is <strong>greater or equal than</strong> <code>x</code>, <code>engine_type</code> is <code>e_type</code>, and <code>drive_type</code> is <code>d_type</code>. We can a create custom expression to query only those vehicles which minimum capacity is greater or equal than <code>x</code>. Let's write the expression and modify our <code>query_specs/3</code> function as follows:</p>
-<div class="highlight"><pre> <span class="c1"># vehicle&#39;s capacity is greater or equal than `val`</span>
+<div class="highlight"><pre><span></span> <span class="c1"># vehicle&#39;s capacity is greater or equal than `val`</span>
  <span class="kd">def</span> <span class="n">query_json_col</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;passenger_capacity&quot;</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">do</span>
    <span class="n">dynamic</span><span class="p">([</span><span class="n">q</span><span class="p">],</span> <span class="n">fragment</span><span class="p">(</span>
      <span class="s2">&quot;(?::jsonb -&gt;&gt; &#39;passenger_capacity&#39;)::int &gt;= ?&quot;</span><span class="p">,</span> 
@@ -298,21 +298,21 @@
 <ul>
 <li>A vehicle has heated seats when the value of <code>heated_seats</code> is <code>true</code>: </li>
 </ul>
-<div class="highlight"><pre> <span class="n">specs</span> <span class="o">@&gt;</span> <span class="s1">&#39;{&quot;heated_seats&quot;: true}&#39;</span>
+<div class="highlight"><pre><span></span> <span class="n">specs</span> <span class="o">@&gt;</span> <span class="s1">&#39;{&quot;heated_seats&quot;: true}&#39;</span>
 </pre></div>
 
 
 <ul>
 <li>A vehicle doesn't have heated seats when the value is false, null or the field doesn't exist:</li>
 </ul>
-<div class="highlight"><pre> <span class="p">(</span><span class="n">specs</span> <span class="o">@&gt;</span> <span class="s1">&#39;{&quot;heated_seats&quot;: false}&#39;</span><span class="p">)</span> <span class="k">OR</span>
+<div class="highlight"><pre><span></span> <span class="p">(</span><span class="n">specs</span> <span class="o">@&gt;</span> <span class="s1">&#39;{&quot;heated_seats&quot;: false}&#39;</span><span class="p">)</span> <span class="k">OR</span>
  <span class="p">(</span><span class="n">specs</span> <span class="o">@&gt;</span> <span class="s1">&#39;{&quot;heated_seats&quot;: null}&#39;</span><span class="p">)</span> <span class="k">OR</span> 
  <span class="k">NOT</span> <span class="p">(</span><span class="n">specs</span> <span class="o">?</span> <span class="s1">&#39;heated_seats&#39;</span><span class="p">)</span>
 </pre></div>
 
 
 <p>We could write this in Elixir as follows:</p>
-<div class="highlight"><pre> <span class="c1"># no heated_seats means false, nil o inexistent `heated_seats` field</span>
+<div class="highlight"><pre><span></span> <span class="c1"># no heated_seats means false, nil o inexistent `heated_seats` field</span>
  <span class="kd">def</span> <span class="n">query_json_col</span><span class="p">(</span><span class="ss">:specs</span><span class="p">,</span> <span class="s2">&quot;heated_seats&quot;</span><span class="p">,</span> <span class="no">false</span><span class="p">)</span> <span class="k">do</span>
    <span class="n">dynamic</span><span class="p">(</span>
      <span class="p">[</span><span class="n">q</span><span class="p">],</span>
@@ -330,7 +330,7 @@
 
 
 <p>Without changing anything at <code>query_specs/3</code>, we can now query for vehicles which <code>passenger_capacity</code> is <strong>greater or equal than</strong> <code>x</code>, <code>engine_type</code> is <code>e_type</code>, <code>drive_type</code> is <code>d_type</code> and <code>heated_seats</code> are <code>a_boolean</code>.</p>
-<div class="highlight"><pre> <span class="n">iex</span><span class="o">&gt;</span> <span class="n">query_specs</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">%{</span>
+<div class="highlight"><pre><span></span> <span class="n">iex</span><span class="o">&gt;</span> <span class="n">query_specs</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">%{</span>
    <span class="ss">engine_type</span><span class="p">:</span> <span class="s2">&quot;Electric&quot;</span><span class="p">,</span> 
    <span class="ss">passenger_capacity</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> 
    <span class="ss">drive_type</span><span class="p">:</span> <span class="s2">&quot;Front Wheel&quot;</span><span class="p">,</span>
@@ -354,7 +354,7 @@
 
 
 <p>Similarly, because <code>query_specs/3</code> is composable, we pipe the function after other queries:</p>
-<div class="highlight"><pre> <span class="kd">def</span> <span class="n">family_electric_mercedes</span> <span class="k">do</span>
+<div class="highlight"><pre><span></span> <span class="kd">def</span> <span class="n">family_electric_mercedes</span> <span class="k">do</span>
    <span class="nc">Vehicle</span>
    <span class="o">|&gt;</span> <span class="n">where</span><span class="p">([</span><span class="n">v</span><span class="p">],</span> <span class="n">v</span><span class="o">.</span><span class="n">brand</span> <span class="o">==</span> <span class="o">^</span><span class="n">brand</span><span class="p">)</span>
    <span class="o">|&gt;</span> <span class="n">query_specs</span><span class="p">(%{</span>
@@ -368,7 +368,7 @@
 
 <h2>The final macro</h2>
 <p>We now have a general purpose macro to query <code>jsonb</code> columns as required:</p>
-<div class="highlight"><pre> <span class="na">@doc</span> <span class="sh">&quot;&quot;&quot;</span>
+<div class="highlight"><pre><span></span> <span class="na">@doc</span> <span class="sh">&quot;&quot;&quot;</span>
 <span class="sh"> A macro that generates multiple fragments using dynamic expressions.</span>
 
 <span class="sh"> Options</span>

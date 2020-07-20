@@ -58,7 +58,7 @@
 <p>If you want to do normalizations specific to some part of the payload, you can specify those under <code>normalizeHash</code>.</p>
 <p>For example, if the <code>IDs</code> under <code>"comments"</code> are provided as <code>_id</code> instead of <code>id</code>, you can specify how to normalize just the comments:</p>
 </blockquote>
-<div class="highlight"><pre>  <span class="c1">//app/serializers/post.js</span>
+<div class="highlight"><pre><span></span>  <span class="c1">//app/serializers/post.js</span>
   <span class="kr">import</span> <span class="nx">DS</span> <span class="nx">from</span> <span class="s1">&#39;ember-data&#39;</span><span class="p">;</span>
   <span class="kr">export</span> <span class="k">default</span> <span class="nx">DS</span><span class="p">.</span><span class="nx">RESTSerializer</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
     <span class="nx">normalizeHash</span><span class="o">:</span> <span class="p">{</span>
@@ -77,7 +77,7 @@
 <p>So, what's the right way to use RESTSerializer?
 If you need to do general manipulations to your API's response, start with the <code>normalizeResponse</code> method. Let's say that our non-JSON API Football Teams API has the following endpoint/response:</p>
 <p><code>GET /api/teams</code></p>
-<div class="highlight"><pre><span class="p">{</span>
+<div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;result&quot;</span><span class="p">:</span> <span class="s2">&quot;Ok&quot;</span><span class="p">,</span>
   <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;teams&quot;</span><span class="p">:</span> <span class="p">[</span>
@@ -142,7 +142,7 @@ If you need to do general manipulations to your API's response, start with the <
 
 
 <p>Then, we have defined <code>team</code> model as follows:</p>
-<div class="highlight"><pre><span class="c1">// app/models/team.js</span>
+<div class="highlight"><pre><span></span><span class="c1">// app/models/team.js</span>
 <span class="kr">import</span> <span class="nx">DS</span> <span class="nx">from</span> <span class="s1">&#39;ember-data&#39;</span><span class="p">;</span>
 
 <span class="kr">const</span> <span class="p">{</span> <span class="nx">attr</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">DS</span><span class="p">;</span>
@@ -163,7 +163,7 @@ If you need to do general manipulations to your API's response, start with the <
 
 
 <p>Let's write our custom <code>normalizeResponse</code> method to get rid of some useless attributes:</p>
-<div class="highlight"><pre><span class="c1">// app/serializers/team.js</span>
+<div class="highlight"><pre><span></span><span class="c1">// app/serializers/team.js</span>
 <span class="kr">import</span> <span class="nx">DS</span> <span class="nx">from</span> <span class="s1">&#39;ember-data&#39;</span><span class="p">;</span>
 
 <span class="kr">export</span> <span class="k">default</span> <span class="nx">DS</span><span class="p">.</span><span class="nx">RESTSerializer</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
@@ -190,7 +190,7 @@ If you need to do general manipulations to your API's response, start with the <
 <p>API Response does not include an id for each <code>team</code>, so we are setting <code>name</code> as an identifier for each record. Nevertheless, using the team's <code>name</code> as <code>id</code> is probably an anti-pattern; you could try to generate an id for each record in the serializer, but that's beyond the scope of this post.</p>
 <h2>Important</h2>
 <p>As we're using <code>normalizeResponse</code>, this normalization will apply to any request related to the <code>team</code> model. If your API structure isn't consistent and varies for each endpoint (<code>GET api/teams/{team_id}</code>, <code>POST api/teams</code>, <code>PUT api/teams/{team_id}</code>, etc), you should try with <code>normalizeFindAllResponse</code>, <code>normalizeCreateRecordResponse</code> or any <code>normalize*</code> method that matches your API request. For example, the code above could have been written using the <code>normalizeFindAllResponse</code> method as follows:</p>
-<div class="highlight"><pre><span class="c1">// app/serializers/team.js</span>
+<div class="highlight"><pre><span></span><span class="c1">// app/serializers/team.js</span>
 <span class="kr">import</span> <span class="nx">DS</span> <span class="nx">from</span> <span class="s1">&#39;ember-data&#39;</span><span class="p">;</span>
 
 <span class="kr">export</span> <span class="k">default</span> <span class="nx">DS</span><span class="p">.</span><span class="nx">RESTSerializer</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
@@ -217,7 +217,7 @@ If you need to do general manipulations to your API's response, start with the <
 
 
 <p>Our payload it's almost normalized, but we still need to match <code>ga</code>, <code>gf</code>, <code>arena</code> attributes with the <code>team</code> model attributes <code>goalsAgainst</code>, <code>goalsFor</code> and <code>stadium</code>, respectively. Let's add a custom <code>normalize</code> method to our <code>team</code> serializer:</p>
-<div class="highlight"><pre><span class="c1">// app/serializers/team.js</span>
+<div class="highlight"><pre><span></span><span class="c1">// app/serializers/team.js</span>
 <span class="kr">import</span> <span class="nx">DS</span> <span class="nx">from</span> <span class="s1">&#39;ember-data&#39;</span><span class="p">;</span>
 
 <span class="kr">export</span> <span class="k">default</span> <span class="nx">DS</span><span class="p">.</span><span class="nx">RESTSerializer</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>

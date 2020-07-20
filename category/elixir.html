@@ -41,11 +41,12 @@
             </header>
                 <div class="entry-content"> <p>When working with an <code>Ecto.Schema</code> that contains a JSONB column, you normally create a <a href="https://hexdocs.pm/ecto/Ecto.Query.API.html#fragment/1" target="&quot;_blank">fragment</a> to query the attributes of a column.</p>
 <p>For instance, let's assume we have the following schema:</p>
-<div class="highlight"><pre> <span class="kd">defmodule</span> <span class="nc">Vehicle</span> <span class="k">do</span>
+<div class="highlight"><pre><span></span> <span class="kd">defmodule</span> <span class="nc">Vehicle</span> <span class="k">do</span>
    <span class="na">@primary_key</span> <span class="p">{</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:id</span><span class="p">,</span> <span class="ss">autogenerate</span><span class="p">:</span> <span class="no">true</span><span class="p">}</span>
    <span class="n">schema</span> <span class="s2">&quot;vehicle&quot;</span> <span class="k">do</span>
      <span class="n">field</span> <span class="ss">:brand</span><span class="p">,</span> <span class="ss">:string</span>
-     <span class="n">field</span> <span class="ss">:model</span><span class="p">,</span> <span class="ss">:string ...</span></pre></div> </div><!-- /.entry-content -->
+     <span class="n">field</span> <span class="ss">:model</span><span class="p">,</span> <span class="ss">:string</span>
+     <span class="n">field …</span></pre></div> </div><!-- /.entry-content -->
                 <div class="read-more"><a href="a-macro-to-query-over-multiple-fields-of-a-jsonb-column.html">read more...</a></div>
                 <span class="tag"><a href="/tag/elixir.html">elixir</a></span>
                 <span class="tag"><a href="/tag/ecto.html">ecto</a></span>
@@ -58,7 +59,7 @@
               <h2 class="entry-title"><a href="/using-ectos-preload-functions-for-many-to-many-relationships.html" rel="bookmark" title="Permalink to Using Ecto's preload functions for Many to Many relationships">Using Ecto's preload functions for Many to Many relationships</a></h2>
             </header>
                 <div class="entry-content"> <p>While working on 1Bitcloud's infrastructure (an application to manage crypto mining farms), I had to solve the following problem:</p>
-<p>A <code>wallet</code> (table 1) can be mined on different <code>pools</code>, whereas a <code>pool</code> (table 2) can be assigned to many <code>wallets</code>. Then we have a table called <code>wallet_pool</code> representing a ...</p> </div><!-- /.entry-content -->
+<p>A <code>wallet</code> (table 1) can be mined on different <code>pools</code>, whereas a <code>pool</code> (table 2) can be assigned to many <code>wallets</code>. Then we have a table called <code>wallet_pool</code> representing a <strong>many …</strong></p> </div><!-- /.entry-content -->
                 <div class="read-more"><a href="using-ectos-preload-functions-for-many-to-many-relationships.html">read more...</a></div>
                 <span class="tag"><a href="/tag/elixir.html">elixir</a></span>
                 <span class="tag"><a href="/tag/ecto.html">ecto</a></span>
@@ -70,7 +71,7 @@
               <h2 class="entry-title"><a href="/elixir-tip-generate-a-list-filled-by-the-same-value.html" rel="bookmark" title="Permalink to Elixir Tip - Generate a list filled by the same value">Elixir Tip - Generate a list filled by the same value</a></h2>
             </header>
                 <div class="entry-content"> <p>I've been learning Elixir and functional programing (for real) recently, and stumbled upon this simple problem of generating a list of n elements with the same value. At first, I implemented an overcomplicated solution using ranges and map, but then realized it was super easy.</p>
-<p>So, this is my ...</p> </div><!-- /.entry-content -->
+<p>So, this is my first …</p> </div><!-- /.entry-content -->
                 <div class="read-more"><a href="elixir-tip-generate-a-list-filled-by-the-same-value.html">read more...</a></div>
                 <span class="tag"><a href="/tag/elixir.html">elixir</a></span>
                 <span class="tag"><a href="/tag/elixir-tip.html">elixir-tip</a></span>

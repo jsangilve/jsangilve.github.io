@@ -22,10 +22,10 @@
 
 
 
-    <meta name="tags" contents="vim" />
-    <meta name="tags" contents="javascript" />
-    <meta name="tags" contents="prettier" />
-    <meta name="tags" contents="eslint" />
+    <meta name="tags" contents="emberjs" />
+    <meta name="tags" contents="ember-cli-deploy" />
+    <meta name="tags" contents="aws" />
+    <meta name="tags" contents="s3" />
 
   </head>
   <body id="index" class="home">
@@ -41,32 +41,20 @@
                   </nav><!-- /#menu -->
 <section id="content" class="body article">
   <header>
-    <abbr class="published" title="2017-07-06T00:00:00+02:00"> Thu 06 July 2017 </abbr>
+    <abbr class="published" title="2015-01-02T00:00:00+01:00"> Fri 02 January 2015 </abbr>
     <h2 class="entry-title">
-      <a href="/when-prettier-eslint-and-vim-dont-work-as-expected.html" rel="bookmark"
-         title="Permalink to When prettier-eslint and Vim don't work as expected">When prettier-eslint and Vim don't work as expected</a></h2>
+      <a href="/drafts/deploying-ember-apps-to-amazon-s3.html" rel="bookmark"
+         title="Permalink to Deploying Ember apps to Amazon S3">Deploying Ember apps to Amazon S3</a></h2>
  
   </header>
   <footer class="post-info">
   </footer><!-- /.post-info -->
   <div class="entry-content">
-    <p>I think almost everybody agrees that Prettier (Javascript formatter) is a fantastic tool and using it along with Vim is simple. </p>
-<p>There are a couple of Vim plugins for prettier that seem to work well. However, I like to keep Vim as light/fast as possible, so I chose <a href="https://github.com/prettier/prettier-eslint-cli">prettier-eslint-cli</a> which doesn't require to install a plugin, but add a couple of lines to your Vim's config file (it also combines with <a href="https://github.com/prettier/prettier-eslint">eslint rules</a>).</p>
-<p>So, I added the following two lines to my <code>.vimrc</code> after installing prettier-eslint-cli via yarn, and... it didn't work (because computers...).</p>
-<div class="highlight"><pre><span></span><span class="err"> &quot; Prettier-eslint Javascript formatter</span>
-<span class="err"> autocmd FileType javascript set formatprg=prettier-eslint\ --stdin\ --no-semi\ --single-quote</span>
-<span class="err"> autocmd BufWritePre *.js :normal gggqG</span>
-</pre></div>
-
-
-<p>The first line sets <code>formatprg</code> (format program) to <code>prettier-eslint</code>, i.e., use prettier-eslint as text formatter when the filetype is javascript.  I double checked that <code>formatprg</code> was properly set when a Javascript file was open, but it didn't work. After reading different blog posts, I found this in <code>formatprg</code> docs (<code>help formatprg</code>)</p>
-<div class="highlight"><pre><span></span><span class="err"> If the &#39;formatexpr&#39; option is not empty, it will be used instead.</span>
-<span class="err"> Otherwise, if &#39;formatprg&#39; option is an empty string, the internal</span>
-<span class="err"> format function will be used |C-indenting|.</span>
-</pre></div>
-
-
-<p>My <code>formatexpr</code> wasn't empty because I had vim-es6 plugin installed (syntax highlighting for ES6+). This plugin set's <code>formatexpr</code> for indentation; <strong>I removed vim-es6 and prettier-eslint-cli started to work correctly</strong>.</p>
+    <p>Think about customizing customHash function within broccoli-asset-rev so you can generate fingerprints that could be inferred from the frontend.
+POST acerca de usar Nginx con S3 en vez de CDN cloudfront
+Check why normalizeHash is deprecated it seems like a bug with documentation</p>
+<p>Bacon ipsum dolor amet tongue venison corned beef, bacon doner jowl ham shank alcatra andouille turkey landjaeger. Pastrami meatloaf chuck, short loin venison fatback hamburger salami tongue. Tenderloin kevin leberkas pork chop, cow brisket hamburger jerky frankfurter spare ribs. Rump shankle fatback porchetta doner chuck ball tip shoulder biltong frankfurter venison spare ribs corned beef bacon swine. Flank strip steak leberkas t-bone sausage kielbasa.</p>
+<p>Chicken parm pancetta turducken andouille chuck ribeye ham ball tip filet mignon sausage leberkas. Filet mignon tongue kevin drumstick, pork loin bacon pig spare ribs jerky short loin jowl. Bresaola corned beef pork chop capicola prosciutto, spare ribs bacon ham hock kielbasa. Andouille hamburger porchetta ribeye leberkas frankfurter shankle tri-tip capicola doner ground round ball tip fatback ham ham hock. Leberkas jowl boudin pork chop ribeye pastrami alcatra drumstick chuck ball tip. Ham hock frankfurter cow jerky tri-tip rump. Chuck pork loin turkey ribeye tail pork turducken, biltong pastrami.</p>
   </div><!-- /.entry-content -->
 </section>
                   <!-- /#contentinfo -->

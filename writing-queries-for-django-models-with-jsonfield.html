@@ -53,7 +53,7 @@
 <p>One interesting feature introduced in Django 1.9 is the <code>JSONField</code>. This field adds support for <code>jsonb</code>, a data type introduced in <a href="https://www.postgresql.org/docs/9.4/static/release-9-4.html">Postgres 9.4</a>. In case you haven't read/hear about it before, <code>jsonb</code> allows you to store JSON data (it actually stores a binary representation) in a table column. It was already possible to store JSON objects as text, but the <code>jsonb</code> type enforces data to comply with the JSON format rules and of course, it gives you SQL syntax to make queries over the JSON's attributes.</p>
 <p>Creating queries with JSONField seems to be easy according to the <a href="https://docs.djangoproject.com/en/1.9/ref/contrib/postgres/fields/#jsonfield">Django documentation</a>, but once you move into more complex situations, where queries require relations and aggregate functions, things could easily get frustrating.</p>
 <p>Let's say we have a table named <code>users_stats</code>, that stores daily interactions completed by the users of your application. Each record of the table has three columns: an <code>id</code> column that works as incremental primary key (PK), a date <code>timestamp</code> column named <code>date</code> and a <code>jsonb</code> column named <code>data</code>. A JSON stored in the <code>data</code> column looks like this:</p>
-<div class="highlight"><pre> <span class="p">{</span>
+<div class="highlight"><pre><span></span> <span class="p">{</span>
    <span class="nt">&quot;clicked_links&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
    <span class="nt">&quot;visited_pages&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
    <span class="nt">&quot;viewed_products&quot;</span><span class="p">:</span> <span class="mi">130</span><span class="p">,</span>
@@ -64,21 +64,21 @@
 
 <p>Let's support you want the daily stats summary in a period of time. The following query will retrieve that summary using Django Queryset:</p>
 <h3>Using Django ORM</h3>
-<div class="highlight"><pre> <span class="n">UserStats</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">date__range</span><span class="p">(</span><span class="n">since</span><span class="p">,</span> <span class="n">until</span><span class="p">))</span>
-     <span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s">&quot;((data-&gt;&gt;&#39;clicked_links&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)),</span>
-               <span class="n">p</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s">&quot;((data-&gt;&gt;&#39;visited_pages&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)),</span>
-               <span class="n">v</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s">&quot;((data-&gt;&gt;&#39;viewed_products&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)),</span>
-               <span class="n">s</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s">&quot;((data-&gt;&gt;&#39;sold_products&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)))</span> \
-     <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">clicked</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s">&#39;l&#39;</span><span class="p">),</span>
-                <span class="n">visited</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s">&#39;p&#39;</span><span class="p">),</span>
-                <span class="n">viewed</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s">&#39;v&#39;</span><span class="p">),</span>
-                <span class="n">sold</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s">&#39;s&#39;</span><span class="p">))</span>
+<div class="highlight"><pre><span></span> <span class="n">UserStats</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">date__range</span><span class="p">(</span><span class="n">since</span><span class="p">,</span> <span class="n">until</span><span class="p">))</span>
+     <span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s2">&quot;((data-&gt;&gt;&#39;clicked_links&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)),</span>
+               <span class="n">p</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s2">&quot;((data-&gt;&gt;&#39;visited_pages&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)),</span>
+               <span class="n">v</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s2">&quot;((data-&gt;&gt;&#39;viewed_products&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)),</span>
+               <span class="n">s</span><span class="o">=</span><span class="n">RawSQL</span><span class="p">(</span><span class="s2">&quot;((data-&gt;&gt;&#39;sold_products&#39;)::int)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)))</span> \
+     <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">clicked</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">),</span>
+                <span class="n">visited</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">),</span>
+                <span class="n">viewed</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">),</span>
+                <span class="n">sold</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">))</span>
 </pre></div>
 
 
 <p>Unfortunately, the query above feels more like a hack than a solution; it's harder to understand than the produced SQL and you have to use <code>RawSQL</code> expressions to define each of the aggregate functions (annotations).</p>
 <p>The equivalent SQL for this query would be:</p>
-<div class="highlight"><pre> <span class="k">SELECT</span> <span class="nb">date</span><span class="p">,</span> <span class="k">SUM</span><span class="p">((</span><span class="k">data</span><span class="o">-&gt;&gt;</span><span class="s1">&#39;clicked_links&#39;</span><span class="p">)::</span><span class="nb">int</span><span class="p">),</span> <span class="k">SUM</span><span class="p">((</span><span class="k">data</span><span class="o">-&gt;&gt;</span><span class="s1">&#39;visited_pages&#39;</span><span class="p">)::</span><span class="nb">int</span><span class="p">),</span>
+<div class="highlight"><pre><span></span> <span class="k">SELECT</span> <span class="nb">date</span><span class="p">,</span> <span class="k">SUM</span><span class="p">((</span><span class="k">data</span><span class="o">-&gt;&gt;</span><span class="s1">&#39;clicked_links&#39;</span><span class="p">)::</span><span class="nb">int</span><span class="p">),</span> <span class="k">SUM</span><span class="p">((</span><span class="k">data</span><span class="o">-&gt;&gt;</span><span class="s1">&#39;visited_pages&#39;</span><span class="p">)::</span><span class="nb">int</span><span class="p">),</span>
               <span class="k">SUM</span><span class="p">((</span><span class="k">data</span><span class="o">-&gt;&gt;</span><span class="s1">&#39;viewed_products&#39;</span><span class="p">)::</span><span class="nb">int</span><span class="p">),</span> <span class="k">SUM</span><span class="p">((</span><span class="k">data</span><span class="o">-&gt;&gt;</span><span class="s1">&#39;sold_products&#39;</span><span class="p">)::</span><span class="nb">int</span><span class="p">)</span>
  <span class="k">FROM</span> <span class="n">user_stats</span>
  <span class="k">WHERE</span> <span class="nb">date</span> <span class="k">BETWEEN</span> <span class="s1">&#39;YYYY-MM-DD&#39;</span> <span class="k">AND</span> <span class="s1">&#39;Y1Y1Y1-M1M1M1-D1D1&#39;</span>
@@ -87,16 +87,16 @@
 
 
 <p>Using the above query with Django is straightforward; we just need a Django connection object to execute the query:</p>
-<div class="highlight"><pre> <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">connection</span>
+<div class="highlight"><pre><span></span> <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">connection</span>
 
 
- <span class="n">query</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;SELECT date, SUM((data-&gt;&gt;&#39;clicked_links&#39;)::int), </span>
-<span class="s">                         SUM((data-&gt;&gt;&#39;visited_pages&#39;)::int),</span>
-<span class="s">                         SUM((data-&gt;&gt;&#39;viewed_products&#39;)::int),</span>
-<span class="s">                         SUM((data-&gt;&gt;&#39;sold_products&#39;)::int)</span>
-<span class="s">            FROM user_stats</span>
-<span class="s">            WHERE date BETWEEN &#39;YYYY-MM-DD&#39; AND &#39;Y1Y1Y1-M1M1M1-D1D1&#39;</span>
-<span class="s">            GROUP BY date;&quot;&quot;&quot;</span>
+ <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;SELECT date, SUM((data-&gt;&gt;&#39;clicked_links&#39;)::int), </span>
+<span class="s2">                         SUM((data-&gt;&gt;&#39;visited_pages&#39;)::int),</span>
+<span class="s2">                         SUM((data-&gt;&gt;&#39;viewed_products&#39;)::int),</span>
+<span class="s2">                         SUM((data-&gt;&gt;&#39;sold_products&#39;)::int)</span>
+<span class="s2">            FROM user_stats</span>
+<span class="s2">            WHERE date BETWEEN &#39;YYYY-MM-DD&#39; AND &#39;Y1Y1Y1-M1M1M1-D1D1&#39;</span>
+<span class="s2">            GROUP BY date;&quot;&quot;&quot;</span>
 
  <span class="n">cursor</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
  <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
@@ -106,7 +106,7 @@
 
 <p>Now, let's move that boilerplate code into a function:</p>
 <h3>Using SQL</h3>
-<div class="highlight"><pre> <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">connection</span>
+<div class="highlight"><pre><span></span> <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">connection</span>
 
 
  <span class="k">def</span> <span class="nf">execute_raw_query</span><span class="p">(</span><span class="n">query</span><span class="p">):</span>
@@ -116,20 +116,20 @@
      <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
 
 
- <span class="n">query</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;SELECT date, SUM((data-&gt;&gt;&#39;clicked_links&#39;)::int),</span>
-<span class="s">                         SUM((data-&gt;&gt;&#39;visited_pages&#39;)::int),</span>
-<span class="s">                         SUM((data-&gt;&gt;&#39;viewed_products&#39;)::int),</span>
-<span class="s">                         SUM((data-&gt;&gt;&#39;sold_products&#39;)::int)</span>
-<span class="s">            FROM user_stats</span>
-<span class="s">            WHERE date BETWEEN &#39;YYYY-MM-DD&#39; AND &#39;Y1Y1Y1-M1M1M1-D1D1&#39;</span>
-<span class="s">            GROUP BY date;&quot;&quot;&quot;</span>
+ <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;SELECT date, SUM((data-&gt;&gt;&#39;clicked_links&#39;)::int),</span>
+<span class="s2">                         SUM((data-&gt;&gt;&#39;visited_pages&#39;)::int),</span>
+<span class="s2">                         SUM((data-&gt;&gt;&#39;viewed_products&#39;)::int),</span>
+<span class="s2">                         SUM((data-&gt;&gt;&#39;sold_products&#39;)::int)</span>
+<span class="s2">            FROM user_stats</span>
+<span class="s2">            WHERE date BETWEEN &#39;YYYY-MM-DD&#39; AND &#39;Y1Y1Y1-M1M1M1-D1D1&#39;</span>
+<span class="s2">            GROUP BY date;&quot;&quot;&quot;</span>
 
  <span class="n">rows</span> <span class="o">=</span> <span class="n">execute_raw_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 </pre></div>
 
 
 <p>Finally, we should create a custom manager for the <code>user_stats</code> model and add a function that calculates the daily summary properly:</p>
-<div class="highlight"><pre> <span class="c"># myapp/models.py</span>
+<div class="highlight"><pre><span></span> <span class="c1"># myapp/models.py</span>
  <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
  <span class="kn">from</span> <span class="nn">myapp.utils</span> <span class="kn">import</span> <span class="n">execute_raw_query</span>
 
@@ -142,17 +142,17 @@
 <span class="sd">         :param to: retrieves stats until this date</span>
 <span class="sd">         &quot;&quot;&quot;</span>
 
-         <span class="c"># formatting dates to iso 8601</span>
-         <span class="n">since_str</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span>
-         <span class="n">to_str</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span>
+         <span class="c1"># formatting dates to iso 8601</span>
+         <span class="n">since_str</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+         <span class="n">to_str</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
 
-         <span class="n">query</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;SELECT date, SUM((data-&gt;&gt;&#39;clicked_links&#39;)::int),</span>
-<span class="s">                                 SUM((data-&gt;&gt;&#39;visited_pages&#39;)::int),</span>
-<span class="s">                                 SUM((data-&gt;&gt;&#39;viewed_products&#39;)::int),</span>
-<span class="s">                                 SUM((data-&gt;&gt;&#39;sold_products&#39;)::int)</span>
-<span class="s">                    FROM user_stats</span>
-<span class="s">                    WHERE date BETWEEN &#39;{}&#39; AND &#39;{}&#39;</span>
-<span class="s">                    GROUP BY date;&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">since_str</span><span class="p">,</span> <span class="n">to_str</span><span class="p">)</span>
+         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;SELECT date, SUM((data-&gt;&gt;&#39;clicked_links&#39;)::int),</span>
+<span class="s2">                                 SUM((data-&gt;&gt;&#39;visited_pages&#39;)::int),</span>
+<span class="s2">                                 SUM((data-&gt;&gt;&#39;viewed_products&#39;)::int),</span>
+<span class="s2">                                 SUM((data-&gt;&gt;&#39;sold_products&#39;)::int)</span>
+<span class="s2">                    FROM user_stats</span>
+<span class="s2">                    WHERE date BETWEEN &#39;</span><span class="si">{}</span><span class="s2">&#39; AND &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">                    GROUP BY date;&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">since_str</span><span class="p">,</span> <span class="n">to_str</span><span class="p">)</span>
 
          <span class="n">rows</span> <span class="o">=</span> <span class="n">execute_raw_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
          <span class="k">return</span> <span class="n">rows</span>
