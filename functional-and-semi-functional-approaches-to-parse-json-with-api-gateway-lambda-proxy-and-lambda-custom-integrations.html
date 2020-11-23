@@ -91,24 +91,24 @@
 <p>For consistently parsing and validating the JSON payloads for different kinds of requests (HTTP POST, PUT, PATCH), I tend to use JSON schemas. For this purpose, the <a href="https://github.com/ajv-validator/ajv">AJV</a> library is a good option. The API is simple to use, it has types, and — according to their benchmarks — it's fast (I haven't corroborated this, but I guess is that, unless your lambda must be extremely fast, it won't introduce a significant overhead).</p>
 <p>Let's start setting up AJV and define a basic JSON schema:</p>
 <div class="highlight"><pre><span></span><code><span class="nx">describe</span><span class="p">(</span><span class="s1">&#39;test different json parsing options&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
-    <span class="c1">// schema containing 3 string fields, but only two of them are required</span>
+  <span class="c1">// schema containing 3 string fields, but only two of them are required</span>
   <span class="kr">const</span> <span class="nx">jsonSchema</span> <span class="o">=</span> <span class="p">{</span>
     <span class="nx">properties</span><span class="o">:</span> <span class="p">{</span>
-        <span class="nx">field1</span><span class="o">:</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;string&#39;</span> <span class="p">},</span>
-        <span class="nx">field2</span><span class="o">:</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;string&#39;</span> <span class="p">},</span>
-        <span class="nx">field3</span><span class="o">:</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;string&#39;</span> <span class="p">},</span>
-    <span class="p">},</span>
+    <span class="nx">field1</span><span class="o">:</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;string&#39;</span> <span class="p">},</span>
+    <span class="nx">field2</span><span class="o">:</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;string&#39;</span> <span class="p">},</span>
+    <span class="nx">field3</span><span class="o">:</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;string&#39;</span> <span class="p">},</span>
+    <span class="p">,</span>
     <span class="nx">required</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;field1&#39;</span><span class="p">,</span> <span class="s1">&#39;field2&#39;</span><span class="p">],</span>
   <span class="p">};</span>
   <span class="kr">const</span> <span class="nx">ajv</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Ajv</span><span class="p">({</span> <span class="nx">allErrors</span>: <span class="kt">true</span> <span class="p">});</span>
   <span class="kr">const</span> <span class="nx">validate</span> <span class="o">=</span> <span class="nx">ajv</span><span class="p">.</span><span class="nx">compile</span><span class="p">(</span><span class="nx">jsonSchema</span><span class="p">);</span>
 
-    <span class="nx">test</span><span class="p">(</span><span class="s1">&#39;check different json payloads&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
-        <span class="nx">expect</span><span class="p">(</span><span class="nx">validate</span><span class="p">({</span><span class="nx">field1</span><span class="o">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="nx">field2</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">})).</span><span class="nx">toTruthy</span><span class="p">()</span>
-        <span class="nx">expect</span><span class="p">(</span><span class="nx">validate</span><span class="p">({</span><span class="nx">field1</span><span class="o">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="nx">field2</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span> <span class="nx">field3</span><span class="o">:</span> <span class="s1">&#39;&#39;</span><span class="p">})).</span><span class="nx">toBeTruthy</span><span class="p">()</span>
-        <span class="nx">expect</span><span class="p">(</span><span class="nx">validate</span><span class="p">({</span><span class="nx">field1</span>: <span class="kt">1</span><span class="p">,</span> <span class="nx">field2</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">})).</span><span class="nx">toFalsy</span><span class="p">()</span>
-        <span class="nx">expect</span><span class="p">(</span><span class="nx">validate</span><span class="p">({</span><span class="nx">field1</span><span class="o">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="nx">field3</span><span class="o">:</span> <span class="s1">&#39;blah&#39;</span><span class="p">})).</span><span class="nx">toFalsy</span><span class="p">()</span>
-    <span class="p">})</span>
+<span class="nx">test</span><span class="p">(</span><span class="s1">&#39;check different json payloads&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">expect</span><span class="p">(</span><span class="nx">validate</span><span class="p">({</span><span class="nx">field1</span><span class="o">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="nx">field2</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">})).</span><span class="nx">toTruthy</span><span class="p">()</span>
+  <span class="nx">expect</span><span class="p">(</span><span class="nx">validate</span><span class="p">({</span><span class="nx">field1</span><span class="o">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="nx">field2</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span> <span class="nx">field3</span><span class="o">:</span> <span class="s1">&#39;&#39;</span><span class="p">})).</span><span class="nx">toBeTruthy</span><span class="p">()</span>
+  <span class="nx">expect</span><span class="p">(</span><span class="nx">validate</span><span class="p">({</span><span class="nx">field1</span>: <span class="kt">1</span><span class="p">,</span> <span class="nx">field2</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">})).</span><span class="nx">toFalsy</span><span class="p">()</span>
+  <span class="nx">expect</span><span class="p">(</span><span class="nx">validate</span><span class="p">({</span><span class="nx">field1</span><span class="o">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="nx">field3</span><span class="o">:</span> <span class="s1">&#39;blah&#39;</span><span class="p">})).</span><span class="nx">toFalsy</span><span class="p">()</span>
+<span class="p">})</span>
 <span class="p">}</span>
 </code></pre></div>
 
@@ -130,10 +130,10 @@
   <span class="k">try</span> <span class="p">{</span>
     <span class="kr">const</span> <span class="nx">parsed</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">data</span> <span class="o">===</span> <span class="s1">&#39;string&#39;</span> <span class="o">?</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="o">:</span> <span class="nx">data</span><span class="p">;</span>
     <span class="k">if</span> <span class="p">(</span><span class="nx">validate</span><span class="p">(</span><span class="nx">parsed</span><span class="p">))</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nx">parsed</span> <span class="kr">as</span> <span class="nx">T</span><span class="p">;</span>
+      <span class="k">return</span> <span class="nx">parsed</span> <span class="kr">as</span> <span class="nx">T</span><span class="p">;</span>
     <span class="p">}</span>
   <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">throw</span> <span class="k">new</span> <span class="nx">JSONParserError</span><span class="p">([{</span><span class="nx">errorCode</span><span class="o">:</span> <span class="s1">&#39;malformed_json&#39;</span><span class="p">]);</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nx">JSONParserError</span><span class="p">([{</span><span class="nx">errorCode</span><span class="o">:</span> <span class="s1">&#39;malformed_json&#39;</span> <span class="p">}]);</span>
   <span class="p">}</span>
 
   <span class="k">throw</span> <span class="k">new</span> <span class="nx">JSONParserError</span><span class="p">(</span><span class="nx">validate</span><span class="p">.</span><span class="nx">errors</span><span class="o">!</span><span class="p">.</span><span class="nx">map</span><span class="p">(({</span> <span class="nx">keyword</span><span class="p">,</span> <span class="nx">message</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">({</span> <span class="nx">errorCode</span>: <span class="kt">keyword</span><span class="p">,</span> <span class="nx">message</span> <span class="p">})));</span>
@@ -144,13 +144,13 @@
 <p>In case the code is not self-explanatory, here we defined a function that short-circuits when the payload is null and will try to parse <code>data</code> as a JSON string, before validating against the schema. In case of failure, a <code>JSONParserError</code> exception is thrown.</p>
 <p>The <code>JSONParseError</code> is basically wrapping an array of the type <code>{ errorCode: string, message?: string}</code>. I could have extended the JSONParseError and created custom exceptions for <code>null_json</code> and <code>malformed_json</code>, but I preferred to return only one error for the sake of simplicity. Let's see how can we use this function:</p>
 <div class="highlight"><pre><span></span><code><span class="nx">describe</span><span class="p">(</span><span class="s1">&#39;test different json parsing options&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
-    <span class="c1">// ... setup</span>
+  <span class="c1">// ... setup</span>
 
   <span class="nx">test</span><span class="p">(</span><span class="s1">&#39;parse valid json with imperativeParseJSON&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
-        <span class="kr">const</span> <span class="nx">validData</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="nx">field1</span><span class="o">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
-            <span class="nx">field2</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
-        <span class="p">}</span>
+    <span class="kr">const</span> <span class="nx">validData</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nx">field1</span><span class="o">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+      <span class="nx">field2</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
     <span class="kr">const</span> <span class="nx">resultObj</span> <span class="o">=</span> <span class="nx">imperativeParseJSON</span><span class="p">(</span><span class="nx">validData</span><span class="p">,</span> <span class="nx">compiledSchema</span><span class="p">);</span>
     <span class="nx">expect</span><span class="p">(</span><span class="nx">resultObj</span><span class="p">).</span><span class="nx">toEqual</span><span class="p">(</span><span class="nx">validData</span><span class="p">);</span>
     <span class="kr">const</span> <span class="nx">resultString</span> <span class="o">=</span> <span class="nx">imperativeParseJSON</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">validData</span><span class="p">),</span> <span class="nx">compiledSchema</span><span class="p">);</span>
@@ -158,10 +158,11 @@
   <span class="p">});</span>
 
   <span class="nx">test</span><span class="p">(</span><span class="s1">&#39;parse invalid json with imperativeParseJSON&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
-        <span class="kr">const</span> <span class="nx">invalidData</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="nx">field2</span>: <span class="kt">1</span><span class="p">,</span>
-            <span class="nx">field3</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
-        <span class="p">};</span>
+    <span class="kr">const</span> <span class="nx">invalidData</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nx">field2</span>: <span class="kt">1</span><span class="p">,</span>
+      <span class="nx">field3</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+    <span class="p">};</span>
+
     <span class="k">try</span> <span class="p">{</span>
       <span class="kr">const</span> <span class="nx">resultObj</span> <span class="o">=</span> <span class="nx">imperativeParseJSON</span><span class="p">(</span><span class="nx">invalidData</span><span class="p">,</span> <span class="nx">compiledSchema</span><span class="p">);</span>
     <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
@@ -181,19 +182,18 @@
 
 <p>From the lambda handler perspective, a <code>try/catch</code> is required to handle the exception in case of an invalid JSON:</p>
 <div class="highlight"><pre><span></span><code><span class="kr">const</span> <span class="nx">lambdaHandler</span>: <span class="kt">APIGatewayHandler</span> <span class="o">=</span> <span class="nx">async</span> <span class="nx">event</span> <span class="o">=&gt;</span> <span class="p">{</span>
-    <span class="k">try</span> <span class="p">{</span>
-        <span class="kr">const</span> <span class="nx">parsed</span> <span class="o">=</span> <span class="nx">imperativeParseJSON</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">body</span><span class="p">)</span>
-        <span class="c1">// ... do something with the parsed payload</span>
-    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nx">e</span> <span class="k">instanceof</span> <span class="nx">JSONParseError</span><span class="p">)</span> <span class="p">{</span>
-            <span class="k">return</span> <span class="p">{</span>
-                <span class="nx">statusCode</span>: <span class="kt">400</span><span class="p">,</span>
-                <span class="nx">body</span>: <span class="kt">JSON.stringify</span><span class="p">({</span> <span class="nx">errors</span>: <span class="kt">e.errors</span> <span class="p">})</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-        <span class="c1">// catch any other expected exception that could be thrown within the code of the lambda function</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="nx">parsed</span> <span class="o">=</span> <span class="nx">imperativeParseJSON</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">body</span><span class="p">)</span>
+    <span class="c1">// ... do something with the parsed payload</span>
+  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">e</span> <span class="k">instanceof</span> <span class="nx">JSONParseError</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">{</span>
+        <span class="nx">statusCode</span>: <span class="kt">400</span><span class="p">,</span>
+        <span class="nx">body</span>: <span class="kt">JSON.stringify</span><span class="p">({</span> <span class="nx">errors</span>: <span class="kt">e.errors</span> <span class="p">})</span>
+      <span class="p">}</span>
     <span class="p">}</span>
-
+    <span class="c1">// catch any other expected exception that could be thrown within the code of the lambda function</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 
@@ -220,7 +220,7 @@
   <span class="k">try</span> <span class="p">{</span>
     <span class="kr">const</span> <span class="nx">parsed</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">data</span> <span class="o">===</span> <span class="s1">&#39;string&#39;</span> <span class="o">?</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="o">:</span> <span class="nx">data</span><span class="p">;</span>
     <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">validate</span><span class="p">(</span><span class="nx">parsed</span><span class="p">))</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nx">E</span><span class="p">.</span><span class="nx">left</span><span class="p">(</span><span class="nx">validate</span><span class="p">.</span><span class="nx">errors</span><span class="o">!</span><span class="p">.</span><span class="nx">map</span><span class="p">(({</span> <span class="nx">keyword</span><span class="p">,</span> <span class="nx">message</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">({</span> <span class="nx">errorCode</span>: <span class="kt">keyword</span><span class="p">,</span> <span class="nx">message</span> <span class="p">})));</span>
+      <span class="k">return</span> <span class="nx">E</span><span class="p">.</span><span class="nx">left</span><span class="p">(</span><span class="nx">validate</span><span class="p">.</span><span class="nx">errors</span><span class="o">!</span><span class="p">.</span><span class="nx">map</span><span class="p">(({</span> <span class="nx">keyword</span><span class="p">,</span> <span class="nx">message</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">({</span> <span class="nx">errorCode</span>: <span class="kt">keyword</span><span class="p">,</span> <span class="nx">message</span> <span class="p">})));</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="nx">E</span><span class="p">.</span><span class="nx">right</span><span class="p">(</span><span class="nx">parsed</span> <span class="kr">as</span> <span class="nx">T</span><span class="p">);</span>
   <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
@@ -239,10 +239,10 @@
     <span class="nx">field1</span><span class="o">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span>
     <span class="nx">field2</span><span class="o">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span>
   <span class="p">};</span>
-    <span class="kr">const</span> <span class="nx">resultObject</span> <span class="o">=</span> <span class="nx">semiFunctionalParseJSON</span><span class="p">(</span><span class="nx">validData</span><span class="p">,</span> <span class="nx">compiledSchema</span><span class="p">);</span>
-    <span class="nx">expect</span><span class="p">(</span><span class="nx">whenRight</span><span class="p">(</span><span class="nx">resultObject</span><span class="p">)).</span><span class="nx">toEqual</span><span class="p">(</span><span class="nx">validData</span><span class="p">);</span>
-    <span class="kr">const</span> <span class="nx">resultString</span> <span class="o">=</span> <span class="nx">semiFunctionalParseJSON</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">validData</span><span class="p">),</span> <span class="nx">compiledSchema</span><span class="p">);</span>
-    <span class="nx">expect</span><span class="p">(</span><span class="nx">whenRight</span><span class="p">(</span><span class="nx">resultString</span><span class="p">)).</span><span class="nx">toEqual</span><span class="p">(</span><span class="nx">validData</span><span class="p">);</span>
+  <span class="kr">const</span> <span class="nx">resultObject</span> <span class="o">=</span> <span class="nx">semiFunctionalParseJSON</span><span class="p">(</span><span class="nx">validData</span><span class="p">,</span> <span class="nx">compiledSchema</span><span class="p">);</span>
+  <span class="nx">expect</span><span class="p">(</span><span class="nx">whenRight</span><span class="p">(</span><span class="nx">resultObject</span><span class="p">)).</span><span class="nx">toEqual</span><span class="p">(</span><span class="nx">validData</span><span class="p">);</span>
+  <span class="kr">const</span> <span class="nx">resultString</span> <span class="o">=</span> <span class="nx">semiFunctionalParseJSON</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">validData</span><span class="p">),</span> <span class="nx">compiledSchema</span><span class="p">);</span>
+  <span class="nx">expect</span><span class="p">(</span><span class="nx">whenRight</span><span class="p">(</span><span class="nx">resultString</span><span class="p">)).</span><span class="nx">toEqual</span><span class="p">(</span><span class="nx">validData</span><span class="p">);</span>
 <span class="p">})</span>
 
 
@@ -251,15 +251,15 @@
 <span class="kr">import</span> <span class="p">{</span> <span class="nx">isLeft</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">&#39;fp-ts/lib/Either&#39;</span><span class="p">;</span>
 
 <span class="kr">const</span> <span class="nx">lambdaHandler</span>: <span class="kt">APIGatewayHandler</span> <span class="o">=</span> <span class="nx">async</span> <span class="nx">event</span> <span class="o">=&gt;</span> <span class="p">{</span>
-    <span class="kr">const</span> <span class="nx">parsed</span> <span class="o">=</span> <span class="nx">semiFunctionalParseJSON</span><span class="o">&lt;</span><span class="nx">MyExpectedType</span><span class="o">&gt;</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">body</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nx">isLeft</span><span class="p">(</span><span class="nx">parsed</span><span class="p">))</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="nx">statusCode</span>: <span class="kt">400</span><span class="p">,</span>
-            <span class="nx">body</span>: <span class="kt">JSON.stringify</span><span class="p">({</span> <span class="nx">errors</span>: <span class="kt">parsed.left</span> <span class="p">})</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
+  <span class="kr">const</span> <span class="nx">parsed</span> <span class="o">=</span> <span class="nx">semiFunctionalParseJSON</span><span class="o">&lt;</span><span class="nx">MyExpectedType</span><span class="o">&gt;</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">body</span><span class="p">)</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">isLeft</span><span class="p">(</span><span class="nx">parsed</span><span class="p">))</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">{</span>
+    <span class="nx">statusCode</span>: <span class="kt">400</span><span class="p">,</span>
+    <span class="nx">body</span>: <span class="kt">JSON.stringify</span><span class="p">({</span> <span class="nx">errors</span>: <span class="kt">parsed.left</span> <span class="p">})</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 
-    <span class="c1">// processing payload with parsed.right (MyExpectedType)</span>
+  <span class="c1">// processing payload with parsed.right (MyExpectedType)</span>
   <span class="c1">// ...</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -311,14 +311,13 @@
 <span class="kr">const</span> <span class="nx">parseJSON</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nx">T</span> <span class="o">=</span> <span class="nx">object</span><span class="o">&gt;</span><span class="p">(</span>
   <span class="nx">data</span>: <span class="kt">Json</span> <span class="o">|</span> <span class="kc">null</span><span class="p">,</span>
   <span class="nx">schema</span>: <span class="kt">JsonSchemaKey</span> <span class="o">|</span> <span class="nx">JsonSchemaValidator</span><span class="p">,</span>
-<span class="p">)</span><span class="o">:</span> <span class="nx">E</span><span class="p">.</span><span class="nx">Either</span><span class="o">&lt;</span><span class="nx">JSONError</span><span class="p">[],</span> <span class="nx">T</span><span class="o">&gt;</span> <span class="o">=&gt;</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="nx">pipe</span><span class="p">(</span>
-        <span class="nx">data</span><span class="p">,</span> 
-        <span class="nx">E</span><span class="p">.</span><span class="nx">fromNullable</span><span class="p">([</span><span class="nx">NULL_JSON</span><span class="p">]),</span> 
-        <span class="nx">E</span><span class="p">.</span><span class="nx">chain</span><span class="p">(</span><span class="nx">doParseJSON</span><span class="p">),</span> 
-        <span class="nx">E</span><span class="p">.</span><span class="nx">chain</span><span class="p">(</span><span class="nx">validateSchema</span><span class="o">&lt;</span><span class="nx">T</span><span class="o">&gt;</span><span class="p">(</span><span class="nx">schema</span><span class="p">))</span>
-    <span class="p">);</span>
-<span class="p">};</span>
+<span class="p">)</span><span class="o">:</span> <span class="nx">E</span><span class="p">.</span><span class="nx">Either</span><span class="o">&lt;</span><span class="nx">JSONError</span><span class="p">[],</span> <span class="nx">T</span><span class="o">&gt;</span> <span class="o">=&gt;</span>
+  <span class="nx">pipe</span><span class="p">(</span>
+    <span class="nx">data</span><span class="p">,</span> 
+    <span class="nx">E</span><span class="p">.</span><span class="nx">fromNullable</span><span class="p">([</span><span class="nx">NULL_JSON</span><span class="p">]),</span> 
+    <span class="nx">E</span><span class="p">.</span><span class="nx">chain</span><span class="p">(</span><span class="nx">doParseJSON</span><span class="p">),</span> 
+    <span class="nx">E</span><span class="p">.</span><span class="nx">chain</span><span class="p">(</span><span class="nx">validateSchema</span><span class="o">&lt;</span><span class="nx">T</span><span class="o">&gt;</span><span class="p">(</span><span class="nx">schema</span><span class="p">))</span>
+  <span class="p">);</span>
 </code></pre></div>
 
 
