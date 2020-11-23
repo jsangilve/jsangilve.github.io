@@ -51,9 +51,9 @@
     <p>I've been learning Elixir and functional programing (for real) recently, and stumbled upon this simple problem of generating a list of n elements with the same value. At first, I implemented an overcomplicated solution using ranges and map, but then realized it was super easy.</p>
 <p>So, this is my first (begineer) post on elixir and it's just a tip <em>cough</em> (reminder for me) on how to generate a list filled by the same character, number, string, etc., n times.</p>
 <p>Let's for example generate a list filled by 8 'x' characters (unicode 120), that's 'xxxxxxxx':</p>
-<div class="highlight"><pre><span></span><span class="n">iex</span><span class="o">&gt;</span> <span class="nc">List</span><span class="o">.</span><span class="n">duplicate</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">8</span>
+<div class="highlight"><pre><span></span><code><span class="n">iex</span><span class="o">&gt;</span> <span class="nc">List</span><span class="o">.</span><span class="n">duplicate</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">8</span>
 <span class="s1">&#39;xxxxxxxx&#39;</span>
-</pre></div>
+</code></pre></div>
 
 
 <p>That's it. <code>List.duplicate</code> is the answer (there is also a <code>duplicate</code> function for <code>String</code> and <code>Tuple</code>).</p>
